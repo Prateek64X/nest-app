@@ -11,37 +11,96 @@ import { format } from 'date-fns';
 import { FaUpload } from 'react-icons/fa';
 import InputCurrency from '../shared/InputCurrency';
 import PhoneInputLu from '../shared/PhoneInputLu';
+import { getAvailableRooms } from '@/services/roomsService';
+import AddEditDocumentsModal from './AddEditDocumentsModal';
+import { createTenant } from '@/services/tenantsService';
 
 export default function AddEditTenantModal({
     isEdit = false,
     onClose,
     onSubmit,
-    initialData = {},
-    rooms = []
 }) {
-    const [name, setName] = useState(initialData.name || '');
-    const [phone, setPhone] = useState(initialData.phone || '');
-    const [joinDate, setJoinDate] = useState(initialData.joinDate ? new Date(initialData.joinDate) : new Date());
-    const [selectedRooms, setSelectedRooms] = useState(initialData.rooms || []);
-    const [roomCosts, setRoomCosts] = useState({});
+    const [tenantData, setTenantData] = useState({
+        name: '',
+        phone: '',
+        joinDate: new Date(),
+    });
+    const [tenantDocuments, setTenantDocuments] = useState({
+        docAadhar: '',
+        docPan: '',
+        docVoter: '',
+        docLicense: '',
+        docPolice: '',
+        docAgreement: '',
+    });
+    const documentsCount = Object.values(tenantDocuments).filter((url) => url !== '').length;
+    const [availableRooms, setAvailableRooms] = useState([]);
+    
+    const [selectedRooms, setSelectedRooms] = useState([]);
+    const [selectedRoomPrices, setSelectedRoomPrices] = useState({});
+
+    const [showDocumentsModal, setShowDocumentsModal] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        const newCosts = {};
-        selectedRooms.forEach((id) => {
-            newCosts[id] = roomCosts[id] || '';
+        getAvailableRooms()
+        .then(setAvailableRooms)
+        .catch ((err) => {
+            console.error(err.message || "Could not fetched available rooms");
         });
-        setRoomCosts(newCosts);
-    }, [selectedRooms]);
+    }, []);
 
-    const handleSubmit = (e) => {
+    // testing
+    useEffect(() => {
+        setSelectedRoomPrices((prevPrices) => {
+            const updated = { ...prevPrices };
+            selectedRooms.forEach((roomId) => {
+                if (!updated[roomId]) {
+                    const room = availableRooms.find((r) => r.id === roomId);
+                    if (room) updated[roomId] = room.price || '';
+                }
+            });
+            return updated;
+        });
+    }, [selectedRooms, availableRooms]);
+
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        onSubmit({ name, phone, joinDate, rooms: selectedRooms, roomCosts });
+
+        // Validation
+        const rooms = selectedRooms.map((roomId) => ({ id: roomId, price: selectedRoomPrices[roomId] || ''}));
+        const payload = {
+            full_name: tenantData.name, 
+            phone: tenantData.phone,
+            move_in_date: tenantData.joinDate, 
+            rooms: rooms || {},
+            documents: tenantDocuments || {}
+        };
+
+        try {
+            if (isEdit) {
+                alert("WIP Tenant not updated successfully");
+            } else {
+                await createTenant({ ...payload });
+                alert("Tenant created successfully");
+            }
+            onClose();
+        } catch (err) {
+            console.error(err.message || "Could not update");
+        } finally {
+            setLoading(false);
+        }
+        console.log("Tenant Data = ", tenantData);
+        console.log("Selected Rooms = ", selectedRooms, "Selected room prices = ", selectedRoomPrices);
+        console.log("Tenant Documents = ", tenantDocuments);
     };
 
     // Convert rooms for MultiSelect display
-    const multiSelectOptions = rooms.map((r) => ({
-    id: r.roomId,
-    name: `Floor ${r.floor} - ${r.room}`
+    const multiSelectOptions = availableRooms.map((r) => ({
+        id: r.id,
+        name: `Floor ${r.floor} - ${r.name}`
     }));
 
 
@@ -57,8 +116,9 @@ export default function AddEditTenantModal({
                         <Label htmlFor="tenant-name">Name</Label>
                         <Input
                             id="tenant-name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            value={tenantData.name}
+                            placeholder="Enter full name"
+                            onChange={(e) => setTenantData((prev) => ({ ...prev, name: e.target.value }))}
                         />
                     </div>
 
@@ -66,8 +126,8 @@ export default function AddEditTenantModal({
                         <Label htmlFor="tenant-phone">Phone</Label>
                         <PhoneInputLu
                             nameValue="tenant-phone"
-                            valueInput={phone}
-                            onChangeInput={setPhone}
+                            valueInput={tenantData.phone}
+                            onChangeInput={(phone) => setTenantData((prev) => ({ ...prev, phone }))}
                         />
                     </div>
 
@@ -76,14 +136,17 @@ export default function AddEditTenantModal({
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button variant="outline" className="w-full justify-start">
-                                    {format(joinDate, 'dd MMM yyyy')}
+                                    {format(tenantData.joinDate, 'dd MMM yyyy')}
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="p-0">
                                 <Calendar
                                     mode="single"
-                                    selected={joinDate}
-                                    onSelect={setJoinDate}
+                                    selected={tenantData.joinDate}
+                                    onSelect={(date) => { 
+                                        if (date) {
+                                        setTenantData((prev) => ({ ...prev, joinDate: date }))
+                                    }}}
                                     initialFocus
                                 />
                             </PopoverContent>
@@ -103,23 +166,20 @@ export default function AddEditTenantModal({
                         <div className="space-y-3">
                             <Label>Room Cost</Label>
                             {selectedRooms.map((roomId) => {
-                                const room = rooms.find((r) => r.roomId === roomId);
+                                const room = availableRooms.find((r) => r.id === roomId);
                                 return (
                                     <div key={roomId} className="flex items-center gap-3">
                                         <span className="text-sm w-1/2">
-                                            {room?.room || 'Room'} - {room?.floor}
+                                            {room?.name || 'Room'} - {room?.floor}
                                         </span>
                                         <div className="relative w-1/2">
                                             <InputCurrency
                                                 id={`cost-${roomId}`}
                                                 symbol="₹"
-                                                value={roomCosts[roomId] || ''}
+                                                value={selectedRoomPrices[roomId] || ''}
                                                 onChange={(e) => {
                                                     const value = e.target.value;
-                                                    setRoomCosts((prev) => ({
-                                                    ...prev,
-                                                    [roomId]: value,
-                                                    }));
+                                                    setSelectedRoomPrices((prev) => ({ ...prev, [roomId]: value }));
                                                 }}
                                             />
                                         </div>
@@ -133,9 +193,10 @@ export default function AddEditTenantModal({
                         variant="secondary"
                         type="button"
                         className="w-full flex items-center justify-center gap-2"
+                        onClick={() => setShowDocumentsModal(true)}
                     >
                         <FaUpload className="w-4 h-4" />
-                        Upload Documents
+                        {documentsCount > 0 ? `Update Documents (${documentsCount})` : 'Upload Documents'}
                     </Button>
 
                     <div className="grid grid-cols-2 gap-2 pt-2">
@@ -145,6 +206,8 @@ export default function AddEditTenantModal({
                         <Button type="submit">{isEdit ? 'Save' : 'Add'}</Button>
                     </div>
                 </form>
+                
+                {showDocumentsModal && (<AddEditDocumentsModal onClose={() => setShowDocumentsModal(false)} onSave={(documents) => setTenantDocuments(documents)} existingDocuments={tenantDocuments}/>)}
             </div>
         </Modal>
     );

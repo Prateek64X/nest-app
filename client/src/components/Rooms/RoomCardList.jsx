@@ -3,17 +3,6 @@ import RoomCard from './RoomCard';
 import LoaderLu from '../shared/LoaderLu';
 import { getRooms } from '@/services/roomsService';
 
-const initialRoomData = [
-  {
-    roomId: '1',
-    room: 'Kitchen',
-    floor: '1',
-    roomCost: 4500,
-    tenantName: 'Prateek Panwar',
-    tenantJoinedDate: '1 May 25'
-  },
-];
-
 export default function RoomsList() {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
