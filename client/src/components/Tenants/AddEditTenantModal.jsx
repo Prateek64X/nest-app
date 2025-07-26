@@ -11,12 +11,14 @@ import { format } from 'date-fns';
 import { FaUpload } from 'react-icons/fa';
 import InputCurrency from '../shared/InputCurrency';
 import PhoneInputLu from '../shared/PhoneInputLu';
-import { getAvailableRooms } from '@/services/roomsService';
+import { getAvailableRooms, getRooms, getRoomsByTenantId } from '@/services/roomsService';
 import AddEditDocumentsModal from './AddEditDocumentsModal';
-import { createTenant } from '@/services/tenantsService';
+import { createTenant, getTenantById, updateTenant } from '@/services/tenantsService';
+import ProfileImageInput from '../shared/ProfileImageInput';
 
 export default function AddEditTenantModal({
     isEdit = false,
+    tenantId,
     onClose,
     onSubmit,
 }) {
@@ -24,6 +26,7 @@ export default function AddEditTenantModal({
         name: '',
         phone: '',
         joinDate: new Date(),
+        photoUrl: '',
     });
     const [tenantDocuments, setTenantDocuments] = useState({
         docAadhar: '',
@@ -34,7 +37,7 @@ export default function AddEditTenantModal({
         docAgreement: '',
     });
     const documentsCount = Object.values(tenantDocuments).filter((url) => url !== '').length;
-    const [availableRooms, setAvailableRooms] = useState([]);
+    const [rooms, setRooms] = useState([]);
     
     const [selectedRooms, setSelectedRooms] = useState([]);
     const [selectedRoomPrices, setSelectedRoomPrices] = useState({});
@@ -44,26 +47,54 @@ export default function AddEditTenantModal({
     const [error, setError] = useState("");
 
     useEffect(() => {
-        getAvailableRooms()
-        .then(setAvailableRooms)
+        // For edit mode
+        async function fetchTenant() {
+            try {
+                if (isEdit && tenantId) {
+                    const tenant = await getTenantById(tenantId);
+
+                    if (tenant && tenant.id) {
+                        setTenantData((prev) => ({
+                            ...prev, 
+                            name: tenant.full_name, 
+                            phone: tenant.phone, 
+                            joinDate: new Date(tenant.move_in_date), 
+                            photoUrl: tenant.photo_url
+                        }));
+
+                        // Fetch selected rooms data
+                        const tenantRooms = await getRoomsByTenantId(tenant.id);
+                        setSelectedRooms(tenantRooms.filter((r) => r.tenant_id).map((r) => r.id));
+                    }
+                } else {
+                    throw new Error("Invalid tenant id");
+                }
+            } catch (err) {
+                console.error("Fetch tenant failed:", err.message || err);
+            }
+        }
+        fetchTenant();
+
+
+        getRooms()
+        .then(setRooms)
         .catch ((err) => {
             console.error(err.message || "Could not fetched available rooms");
         });
     }, []);
 
-    // testing
     useEffect(() => {
         setSelectedRoomPrices((prevPrices) => {
             const updated = { ...prevPrices };
             selectedRooms.forEach((roomId) => {
                 if (!updated[roomId]) {
-                    const room = availableRooms.find((r) => r.id === roomId);
+                    const room = rooms.find((r) => r.id === roomId);
                     if (room) updated[roomId] = room.price || '';
                 }
             });
             return updated;
         });
-    }, [selectedRooms, availableRooms]);
+    }, [selectedRooms, rooms]);
 
 
     const handleSubmit = async (e) => {
@@ -74,14 +105,19 @@ export default function AddEditTenantModal({
         const payload = {
             full_name: tenantData.name, 
             phone: tenantData.phone,
-            move_in_date: tenantData.joinDate, 
+            move_in_date: tenantData.joinDate,
+            photo_url: tenantData.photoUrl,
             rooms: rooms || {},
             documents: tenantDocuments || {}
         };
 
         try {
             if (isEdit) {
-                alert("WIP Tenant not updated successfully");
+                if (tenantId) {
+                    await updateTenant({ ...payload, id: tenantId, move_out_date: null });
+                } else {
+                    throw new Error("Invalid tenant Id for Edit Tenant Modal");
+                }
             } else {
                 await createTenant({ ...payload });
                 alert("Tenant created successfully");
@@ -92,16 +128,16 @@ export default function AddEditTenantModal({
         } finally {
             setLoading(false);
         }
-        console.log("Tenant Data = ", tenantData);
-        console.log("Selected Rooms = ", selectedRooms, "Selected room prices = ", selectedRoomPrices);
-        console.log("Tenant Documents = ", tenantDocuments);
     };
 
     // Convert rooms for MultiSelect display
-    const multiSelectOptions = availableRooms.map((r) => ({
-        id: r.id,
-        name: `Floor ${r.floor} - ${r.name}`
-    }));
+    const multiSelectOptions = rooms
+        .filter((r) => !r.occupied)
+        .map((r) => ({
+            id: r.id,
+            name: `Floor ${r.floor} - ${r.name}`
+        }
+    ));
 
 
     return (
@@ -112,6 +148,13 @@ export default function AddEditTenantModal({
                 </h2>
 
                 <form className="space-y-4" onSubmit={handleSubmit}>
+                    <div className='space-y-2'>
+                        <ProfileImageInput
+                            value={tenantData.photoUrl}
+                            onChange={(file) => setTenantData((prev) => ({ ...prev, photoFile: file }))}
+                        />
+                    </div>
+
                     <div className="space-y-2">
                         <Label htmlFor="tenant-name">Name</Label>
                         <Input
@@ -136,7 +179,7 @@ export default function AddEditTenantModal({
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button variant="outline" className="w-full justify-start">
-                                    {format(tenantData.joinDate, 'dd MMM yyyy')}
+                                    {tenantData.joinDate && format(new Date(tenantData.joinDate), 'dd MMM yyyy')}
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="p-0">
@@ -166,7 +209,7 @@ export default function AddEditTenantModal({
                         <div className="space-y-3">
                             <Label>Room Cost</Label>
                             {selectedRooms.map((roomId) => {
-                                const room = availableRooms.find((r) => r.id === roomId);
+                                const room = rooms.find((r) => r.id === roomId);
                                 return (
                                     <div key={roomId} className="flex items-center gap-3">
                                         <span className="text-sm w-1/2">

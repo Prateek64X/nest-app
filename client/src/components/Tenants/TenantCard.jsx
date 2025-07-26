@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import AddEditTenantModal from './AddEditTenantModal';
 import { FaIdCard, FaPassport, FaFileAlt, FaFileSignature, FaFileContract, FaUserEdit } from "react-icons/fa";
 
-export default function TenantCard({ tenant, roomData }) {
+export default function TenantCard({ tenant, rooms }) {
     const [expanded, setExpanded] = useState(false);
 
     return (
@@ -18,11 +18,11 @@ export default function TenantCard({ tenant, roomData }) {
             <Accordion type="single" collapsible value={expanded} onValueChange={setExpanded}>
                 <AccordionItem value="tenant-card">
                     <AccordionTrigger className="py-0 text-left">
-                        <CollapsedTenant tenant={tenant} expanded={expanded} />
+                        <CollapsedTenant tenant={tenant} rooms={rooms} expanded={expanded} />
                     </AccordionTrigger>
 
                     <AccordionContent className="pt-2 pb-0">
-                        <ExpandedTenant tenant={tenant} roomData={roomData} />
+                        <ExpandedTenant tenant={tenant} rooms={rooms} />
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>
@@ -30,38 +30,53 @@ export default function TenantCard({ tenant, roomData }) {
     );
 }
 
-function CollapsedTenant({ tenant, expanded }) {
+function CollapsedTenant({ tenant, rooms, expanded }) {
+    const joinDate = new Date(tenant.move_in_date).toLocaleDateString();
     return (
         <div className="flex items-start gap-4 w-full">
-            <img
-                className="w-12 h-12 rounded-full object-cover"
-                src={tenant.photoUrl}
-                alt="Tenant"
-            />
+            {tenant.photo_url && (
+                <img
+                    className="w-12 h-12 rounded-full object-cover"
+                    src={tenant.photo_url}
+                    alt="Tenant"
+                />
+            )}
             <div className="flex flex-col flex-1">
                 <div className="flex justify-between items-center">
-                    <h2 className="text-base font-medium">{tenant.fullName}</h2>
-                    <span className="text-sm text-muted-foreground">{tenant.floor} - {tenant.room}</span>
+                    <h2 className="text-base font-medium">{tenant.full_name}</h2>
+                    {rooms?.length > 0 && (
+                        <span className="text-sm text-muted-foreground">
+                            {rooms?.length > 1 
+                                ? `${rooms.length} rooms` 
+                                : `${rooms[0]?.floor} - ${rooms[0]?.name}`}
+                        </span>
+                    )}
                 </div>
                 <span className="text-xs text-muted-foreground mt-1">
-                    Joined on {tenant.joinedDate}
+                    Joined on {joinDate}
                 </span>
             </div>
         </div>
     );
 }
 
-function ExpandedTenant({ tenant, roomData }) {
+function ExpandedTenant({ tenant, rooms }) {
     const documentsLabelList = [
-        { key: "aadhar", label: "Aadhar", icon: <FaIdCard /> },
-        { key: "pan", label: "PAN", icon: <FaIdCard /> },
-        { key: "voter", label: "Voter ID", icon: <FaIdCard /> },
-        { key: "license", label: "License", icon: <FaFileSignature /> },
-        { key: "police", label: "Police Verification", icon: <FaPassport /> },
-        { key: "agreement", label: "Rent Agreement", icon: <FaFileContract /> },
+        { key: 'doc_aadhar', label: 'Aadhar', icon: <FaIdCard /> },
+        { key: 'doc_pan', label: 'PAN', icon: <FaIdCard /> },
+        { key: 'doc_voter', label: 'Voter ID', icon: <FaIdCard /> },
+        { key: 'doc_license', label: 'License', icon: <FaFileSignature /> },
+        { key: 'doc_police', label: 'Police Verification', icon: <FaPassport /> },
+        { key: 'doc_agreement', label: 'Rent Agreement', icon: <FaFileContract /> },
     ];
 
-    const documents = tenant.documents || {};
+    const documents = documentsLabelList
+        .filter(({key}) => tenant[key])
+        .reduce((acc, { key }) => {
+            acc[key] = tenant[key];
+            return acc;
+        }, {}
+    );
 
     const [showEditModal, setShowEditModal] = useState(false);
 
@@ -107,12 +122,9 @@ function ExpandedTenant({ tenant, roomData }) {
             {showEditModal && (
                 <AddEditTenantModal
                     isEdit={true}
+                    tenantId={tenant.id}
                     onClose={() => setShowEditModal(false)}
                     onSubmit={(data) => console.log(data)}
-                    rooms={[
-                        { id: '101', name: 'Room 101', floor: '1st' },
-                        { id: '201', name: 'Room 201', floor: '2nd' },
-                    ]}
                 />
             )}
         </div>

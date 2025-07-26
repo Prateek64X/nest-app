@@ -10,9 +10,13 @@ import { Button } from '@/components/ui/button';
 import { MdDelete, MdEdit } from 'react-icons/md';
 import AddEditRoomModal from './AddEditRoomModal'; // Ensure correct import path
 
-export default function RoomCard({ room }) {
+export default function RoomCard({ room, tenant }) {
   const [expanded, setExpanded] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
+  
+  const joinDate = tenant.move_in_date
+  ? new Date(tenant.move_in_date).toLocaleDateString()
+  : '';
 
   return (
     <>
@@ -26,10 +30,10 @@ export default function RoomCard({ room }) {
                   <span className="text-sm">₹{room.price}</span>
                 </div>
                 <div className="text-sm flex items-center justify-between mt-1 text-muted-foreground">
-                  <span>room.tenantName</span>
+                  <span>{tenant.full_name}</span>
                   <div className="flex items-center gap-1">
-                    <span className={`w-2 h-2 rounded-full ${room.tenantName ? 'bg-green-500' : 'bg-red-500'}`} />
-                    <span className="text-xs">{room.tenantName ? 'Joined' : 'Vecant'} room.tenantJoinedDate</span>
+                    <span className={`w-2 h-2 rounded-full ${tenant.full_name ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <span className="text-xs">{tenant.full_name ? 'Joined' : 'Vecant'} {joinDate}</span>
                   </div>
                 </div>
               </div>
@@ -59,7 +63,7 @@ export default function RoomCard({ room }) {
       {showEditModal && (
         <AddEditRoomModal
           isEdit={true}
-          initialData={room}
+          initialRoom={room}
           onClose={() => setShowEditModal(false)}
           onSubmit={(updatedRoom) => {
             // Add update logic here (API, state update, etc.)

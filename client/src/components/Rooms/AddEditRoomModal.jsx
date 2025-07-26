@@ -7,13 +7,13 @@ import InputCurrency from '../shared/InputCurrency';
 import { createRoom, updateRoom } from '@/services/roomsService';
 import LoaderLu from '../shared/LoaderLu';
 
-export default function AddEditRoomModal({ isEdit = false, onClose, initialData = {} }) {
-  const [roomName, setRoomName] = useState(initialData.room || '');
-  const [floor, setFloor] = useState(initialData.floor || '');
-  const [price, setPrice] = useState(initialData.roomCost || '');
+export default function AddEditRoomModal({ isEdit = false, onClose, initialRoom = {} }) {
+  const [roomName, setRoomName] = useState(initialRoom.name || '');
+  const [floor, setFloor] = useState(initialRoom.floor || '');
+  const [price, setPrice] = useState(initialRoom.price || '');
   const [loading, setLoading] = useState(false);
 
-  const roomId = initialData?.id;
+  const roomId = initialRoom?.id;
 
   const handleSubmit = async (e) => {
     e.preventDefault();

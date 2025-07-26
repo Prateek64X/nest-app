@@ -46,7 +46,7 @@ model rooms {
 }
 
 model tenants {
-  id            String    @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   admin_id      String    @db.Uuid
   full_name     String
   phone         String    @unique
@@ -54,6 +54,7 @@ model tenants {
   move_in_date  DateTime? @db.Date
   move_out_date DateTime? @db.Date
   created_at    DateTime? @default(now()) @db.Timestamp(6)
+  photo_url     String?
   doc_aadhar    String?
   doc_pan       String?
   doc_voter     String?

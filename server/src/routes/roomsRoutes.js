@@ -4,13 +4,17 @@ import {
   createRoom,
   getAvailableRooms,
   getRooms,
-  updateRoomById
+  getRoomById,
+  updateRoomById,
+  getRoomsByTenantId
 } from '../controllers/roomsController.js';
 
 const router = express.Router();
 
 router.post('/create', verifyToken, createRoom);
 router.get('/', verifyToken, getRooms);
+router.get('/:id', verifyToken, getRoomById);
+router.get('/by-tenant/:id', verifyToken, getRoomsByTenantId);
 router.get('/available', verifyToken, getAvailableRooms);
 router.patch('/:id', verifyToken, updateRoomById);
 

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import RoomCard from './RoomCard';
 import LoaderLu from '../shared/LoaderLu';
 import { getRooms } from '@/services/roomsService';
+import { getTenantsByIds } from '@/services/tenantsService';
 
 export default function RoomsList() {
   const [rooms, setRooms] = useState([]);
+  const [tenants, setTenants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -12,17 +14,23 @@ export default function RoomsList() {
     async function fetchRooms() {
       try {
         const data = await getRooms();
-        setRooms(data.rooms);
+        setRooms(data);
+
+        const tenantIds = data.map(({tenant_id}) => tenant_id).filter(Boolean);
+
+        if (tenantIds.length > 0) {
+          const { tenants } = await getTenantsByIds(tenantIds);
+          setTenants(tenants);
+        }
       } catch (err) {
         setError(err.message);
       } finally {
         setLoading(false);
       }
     }
-    fetchRooms();
-    console.log("rooms = ", rooms);
-  }, []);
 
+    fetchRooms();
+  }, []);
 
   if (loading) return <LoaderLu />;
   if (error) return <p className="text-red-500">Error: {error}</p>;
@@ -42,9 +50,11 @@ export default function RoomsList() {
             Floor {floor}
           </h2>
           <div className="space-y-2">
-            {groupedByFloor[floor].map((room) => (
-              <RoomCard key={room.id} room={room} />
-            ))}
+            {groupedByFloor[floor].map((room) => {
+              const tenant = tenants.find((t) => t.id === room.tenant_id) || {};
+
+              return <RoomCard key={room.id} room={room} tenant={tenant} />
+            })}
           </div>
         </div>
       ))}
