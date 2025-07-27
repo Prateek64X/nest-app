@@ -6,12 +6,15 @@ import { Button } from '@/components/ui/button';
 import InputCurrency from '../shared/InputCurrency';
 import { createRoom, updateRoom } from '@/services/roomsService';
 import LoaderLu from '../shared/LoaderLu';
+import { AlertDialogLu } from '../shared/AlertDialogLu';
 
 export default function AddEditRoomModal({ isEdit = false, onClose, initialRoom = {} }) {
   const [roomName, setRoomName] = useState(initialRoom.name || '');
   const [floor, setFloor] = useState(initialRoom.floor || '');
   const [price, setPrice] = useState(initialRoom.price || '');
   const [loading, setLoading] = useState(false);
+
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const roomId = initialRoom?.id;
 
@@ -40,13 +43,10 @@ export default function AddEditRoomModal({ isEdit = false, onClose, initialRoom 
 
       if (isEdit) {
         await updateRoom({ id: roomId, ...payload });
-        alert("Room updated successfully");
       } else {
         await createRoom({ ...payload });
-        alert("Room created successfully");
       }
-      
-      onClose();
+      setShowSuccessDialog(true);
     } catch (err) {
       alert(`Error: ${err.message}`);
     } finally {
@@ -100,6 +100,17 @@ export default function AddEditRoomModal({ isEdit = false, onClose, initialRoom 
             <Button type="submit">{isEdit ? 'Save' : 'Done'}</Button>
           </div>
         </form>
+
+        {/* Success Dialog */}
+        <AlertDialogLu
+          open={showSuccessDialog}
+          onOpenChange={setShowSuccessDialog}
+          title={"Success"}
+          description={isEdit ? 'Room is updated successfully' : 'Room is created successfully'}
+          cancelLabel={"Done"}
+          showActionButton={false}
+          onCancel={() => onClose()}
+        />
       </div>
     </Modal>
   ) : (

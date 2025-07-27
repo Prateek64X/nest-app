@@ -6,7 +6,8 @@ import {
   getRooms,
   getRoomById,
   updateRoomById,
-  getRoomsByTenantId
+  getRoomsByTenantId,
+  deleteRoomById
 } from '../controllers/roomsController.js';
 
 const router = express.Router();
@@ -17,5 +18,6 @@ router.get('/:id', verifyToken, getRoomById);
 router.get('/by-tenant/:id', verifyToken, getRoomsByTenantId);
 router.get('/available', verifyToken, getAvailableRooms);
 router.patch('/:id', verifyToken, updateRoomById);
+router.delete('/:id', verifyToken, deleteRoomById);
 
 export default router;

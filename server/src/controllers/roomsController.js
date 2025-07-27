@@ -182,3 +182,37 @@ export const updateRoomById = async (req, res) => {
     res.status(500).json({ error: "Something went wrong" });
   }
 };
+
+// Delete room by Id
+export const deleteRoomById = async (req, res) => {
+  const { id } = req.params;
+  const admin_id = req.admin.id;
+
+  if (!id || isNaN(Number(id))) {
+    return res.status(400).json({error: "Invalid room id", id: id});
+  }
+
+  try {
+    // Check if room exists and unoccupied
+    const existingRoom = await prisma.rooms.findFirst({
+      where: {
+        id: Number(id),
+        admin_id,
+        occupied: false
+      }
+    });
+
+    if (!existingRoom) {
+      return res.status(404).json({ error: "Room not found or unauthorized" });
+    }
+
+    await prisma.rooms.delete({
+      where: { id: Number(id) }
+    });
+
+    res.status(200).json({ success: true, message: "Room deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting room:", err);
+    res.status(500).json({ error: "Something went wrong" })
+  }
+}

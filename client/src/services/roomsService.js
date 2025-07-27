@@ -67,3 +67,14 @@ export async function updateRoom({ id, name, floor, price }) {
         throw new Error(message)
     }
 }
+
+export async function deleteRoom(id) {
+    try {
+        const res = await api.delete(`/rooms/${id}`);
+
+        return res.data;
+    } catch (err) {
+        const message = err.response?.data?.error || "Room delete failed";
+        throw new Error(message)
+    }
+}
