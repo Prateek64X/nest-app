@@ -1,16 +1,33 @@
 import api from "@/api/api";
 
-export async function createTenant({ full_name, phone, move_in_date, photo_url, rooms, documents }) {
-    try {
-        const res = await api.post('/tenants/create', {
-            full_name, phone, move_in_date, photo_url, rooms, documents
-        });
+// Frontend -> Backend key map
+export const TENANT_DOC_KEY_MAP = {
+  docAadhar: "doc_aadhar",
+  docPan: "doc_pan",
+  docVoter: "doc_voter",
+  docLicense: "doc_license",
+  docPolice: "doc_police",
+  docAgreement: "doc_agreement",
+};
 
-        return res.data;
-    } catch (err) {
-        const message = err.response?.data?.error || "Tenant creation failed";
-        throw new Error(message)
-    }
+export const TENANT_DOC_KEY_MAP_REVERSE = Object.fromEntries(
+    Object.entries(TENANT_DOC_KEY_MAP).map(([camel, snake]) => [snake, camel])
+);
+
+export async function createTenant(formData) {
+  try {
+    console.log("Create Tenant Form Data", formData);
+    const res = await api.post('/tenants/create', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return res.data;
+  } catch (err) {
+    const message = err.response?.data?.error || "Tenant creation failed";
+    throw new Error(message);
+  }
 }
 
 export async function getTenants() {
@@ -45,15 +62,34 @@ export async function getTenantsByIds(tenant_ids) {
   }
 }
 
-export async function updateTenant({ id, full_name, phone, move_in_date, move_out_date, photo_url, rooms, documents }) {
-    try {
-        const res = await api.patch(`/tenants/${id}`, {
-            full_name, phone, move_in_date, move_out_date, photo_url, rooms, documents
-        });
+export async function updateTenant(formData) {
+  try {
+    const tenantId = formData.get('id');
 
-        return res.success;
+    if (!tenantId) {
+      throw new Error("Missing tenant ID for update");
+    }
+
+    const res = await api.patch(`/tenants/${tenantId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return res.data;
+  } catch (err) {
+    const message = err.response?.data?.error || "Tenant update failed";
+    throw new Error(message);
+  }
+}
+
+// Delete by Id
+export async function deleteTenant(tenant_id) {
+    try {
+        const res = await api.delete(`/tenants/${tenant_id}`);
+        return res.data;
     } catch (err) {
-        const message = err.response?.data?.error || "Tenant update failed";
+        const message = err.response?.data?.error || "Tenant fetching failed";
         throw new Error(message)
     }
 }

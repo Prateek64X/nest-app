@@ -13,8 +13,9 @@ import InputCurrency from '../shared/InputCurrency';
 import PhoneInputLu from '../shared/PhoneInputLu';
 import { getAvailableRooms, getRooms, getRoomsByTenantId } from '@/services/roomsService';
 import AddEditDocumentsModal from './AddEditDocumentsModal';
-import { createTenant, getTenantById, updateTenant } from '@/services/tenantsService';
+import { createTenant, getTenantById, TENANT_DOC_KEY_MAP, TENANT_DOC_KEY_MAP_REVERSE, updateTenant } from '@/services/tenantsService';
 import ProfileImageInput from '../shared/ProfileImageInput';
+import { AlertDialogLu } from '../shared/AlertDialogLu';
 
 export default function AddEditTenantModal({
     isEdit = false,
@@ -26,17 +27,21 @@ export default function AddEditTenantModal({
         name: '',
         phone: '',
         joinDate: new Date(),
-        photoUrl: '',
+        photo: null,
     });
     const [tenantDocuments, setTenantDocuments] = useState({
-        docAadhar: '',
-        docPan: '',
-        docVoter: '',
-        docLicense: '',
-        docPolice: '',
-        docAgreement: '',
+        docAadhar: { file: null, url: '' },
+        docPan: { file: null, url: '' },
+        docVoter: { file: null, url: '' },
+        docLicense: { file: null, url: '' },
+        docPolice: { file: null, url: '' },
+        docAgreement: { file: null, url: '' },
     });
-    const documentsCount = Object.values(tenantDocuments).filter((url) => url !== '').length;
+
+    const documentsCount = Object.values(tenantDocuments).filter(
+        (doc) => doc && (doc.file || doc.url)
+    ).length;
+
     const [rooms, setRooms] = useState([]);
     
     const [selectedRooms, setSelectedRooms] = useState([]);
@@ -45,9 +50,10 @@ export default function AddEditTenantModal({
     const [showDocumentsModal, setShowDocumentsModal] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
     useEffect(() => {
-        // For edit mode
+        // Edit Mode: Fetch existing tenant data on start
         async function fetchTenant() {
             try {
                 if (isEdit && tenantId) {
@@ -59,15 +65,26 @@ export default function AddEditTenantModal({
                             name: tenant.full_name, 
                             phone: tenant.phone, 
                             joinDate: new Date(tenant.move_in_date), 
-                            photoUrl: tenant.photo_url
+                            photo: tenant.photo_url
                         }));
+
+                        // Set documents from tenants
+                        const updatedDocuments = Object.fromEntries(
+                            Object.entries(tenant)
+                                .filter(([key]) => TENANT_DOC_KEY_MAP_REVERSE[key])
+                                .map(([key, value]) => [
+                                TENANT_DOC_KEY_MAP_REVERSE[key],
+                                { file: null, url: value || '' },
+                            ])
+                        );
+
+                        console.log("Fetch Tenant: ", updatedDocuments)
+                        setTenantDocuments((prev) => ({...prev, ...updatedDocuments}));
 
                         // Fetch selected rooms data
                         const tenantRooms = await getRoomsByTenantId(tenant.id);
                         setSelectedRooms(tenantRooms.filter((r) => r.tenant_id).map((r) => r.id));
                     }
-                } else {
-                    throw new Error("Invalid tenant id");
                 }
             } catch (err) {
                 console.error("Fetch tenant failed:", err.message || err);
@@ -99,29 +116,55 @@ export default function AddEditTenantModal({
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // Validation
-        const rooms = selectedRooms.map((roomId) => ({ id: roomId, price: selectedRoomPrices[roomId] || ''}));
-        const payload = {
-            full_name: tenantData.name, 
-            phone: tenantData.phone,
-            move_in_date: tenantData.joinDate,
-            photo_url: tenantData.photoUrl,
-            rooms: rooms || {},
-            documents: tenantDocuments || {}
-        };
+        setLoading(true);
 
         try {
+            const formData = new FormData();
+
+            formData.append('full_name', tenantData.name);
+            formData.append('phone', tenantData.phone);
+            formData.append('move_in_date', tenantData.joinDate?.toISOString());
+            formData.append('photo', tenantData.photo);
+
+            formData.append(
+                'rooms',
+                JSON.stringify(
+                selectedRooms.map((roomId) => ({
+                    id: roomId,
+                    price: selectedRoomPrices[roomId] || '',
+                }))
+                )
+            );
+
+            // Add Documents
+            for (const [key, { file, url }] of Object.entries(tenantDocuments)) {
+                const mappedKey = TENANT_DOC_KEY_MAP[key] || key;
+
+                if (file) {
+                    formData.append(mappedKey, file);
+                } else if (url) {
+                    formData.append(`${mappedKey}_url`, url);
+                }
+            }
+
             if (isEdit) {
-                if (tenantId) {
-                    await updateTenant({ ...payload, id: tenantId, move_out_date: null });
-                } else {
+                if (!tenantId) {
                     throw new Error("Invalid tenant Id for Edit Tenant Modal");
                 }
+                    
+                formData.append('id', tenantId);
+                formData.append('move_out_date', '');
+                let response = await updateTenant(formData);
+                if (response.success) {
+                    setShowSuccessDialog(true);
+                }
             } else {
-                await createTenant({ ...payload });
-                alert("Tenant created successfully");
+                let response = await createTenant(formData);
+                if (response.success) {
+                    setShowSuccessDialog(true);
+                }
             }
+
             onClose();
         } catch (err) {
             console.error(err.message || "Could not update");
@@ -139,7 +182,6 @@ export default function AddEditTenantModal({
         }
     ));
 
-
     return (
         <Modal onClose={onClose}>
             <div className="w-[340px] space-y-5">
@@ -150,8 +192,8 @@ export default function AddEditTenantModal({
                 <form className="space-y-4" onSubmit={handleSubmit}>
                     <div className='space-y-2'>
                         <ProfileImageInput
-                            value={tenantData.photoUrl}
-                            onChange={(file) => setTenantData((prev) => ({ ...prev, photoFile: file }))}
+                            value={tenantData.photo}
+                            onChange={(file) => setTenantData((prev) => ({ ...prev, photo: file }))}
                         />
                     </div>
 
@@ -251,6 +293,18 @@ export default function AddEditTenantModal({
                 </form>
                 
                 {showDocumentsModal && (<AddEditDocumentsModal onClose={() => setShowDocumentsModal(false)} onSave={(documents) => setTenantDocuments(documents)} existingDocuments={tenantDocuments}/>)}
+                {/* Success Dialog */}
+                {showSuccessDialog && (
+                    <AlertDialogLu 
+                        open={showSuccessDialog}
+                        onOpenChange={setShowSuccessDialog}
+                        title={"Success"}
+                        description={isEdit ? 'Tenant is updated successfully' : 'Tenant is added successfully'}
+                        cancelLabel={"Close"}
+                        showActionButton={false}
+                    />
+                )}
+                
             </div>
         </Modal>
     );

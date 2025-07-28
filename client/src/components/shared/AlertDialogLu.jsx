@@ -22,13 +22,13 @@ export function AlertDialogLu({
 }) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="w-[350px] p-4">
+      <AlertDialogContent className="w-[360px] p-4">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex flex col justify-center items-center gap-2">{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={onCancel}>{cancelLabel}</AlertDialogCancel>
+        <AlertDialogFooter className={showActionButton ? "grid grid-cols-2 !justify-center" : "flex !justify-center"}>
+          <AlertDialogCancel onClick={onCancel} className="w-full">{cancelLabel}</AlertDialogCancel>
           {showActionButton && (
             <AlertDialogAction onClick={onConfirm}>
               {actionLabel}

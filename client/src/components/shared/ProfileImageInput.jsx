@@ -1,34 +1,38 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MdEdit } from "react-icons/md";
 import { Pencil } from "lucide-react";
 
 export default function ProfileImageInput({ value, onChange }) {
   const fileRef = useRef(null);
-  const [preview, setPreview] = useState(value || '');
+  const [preview, setPreview] = useState('');
+
+  useEffect(() => {
+    if (!value) {
+      setPreview('');
+    } else if (value instanceof File) {
+      const reader = new FileReader();
+      reader.onloadend = () => setPreview(reader.result);
+      reader.readAsDataURL(value);
+    } else if (typeof value === 'string') {
+      setPreview(value);
+    }
+  }, [value]);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-        onChange(file);
-      };
-      reader.readAsDataURL(file);
+      onChange(file);
     }
   };
 
   return (
     <div className="flex flex-col items-center space-y-2">
-      {/* Avatar wrapper (does NOT clip) */}
       <div className="relative w-24 h-24">
-        {/* Inner clipped circle */}
         <div className="group w-full h-full rounded-full bg-secondary overflow-hidden relative">
-          {/* Image or fallback */}
           {preview ? (
             <img
               src={preview}
-              alt=""
+              alt="Profile"
               className="w-full h-full object-cover rounded-full"
             />
           ) : (
@@ -37,7 +41,6 @@ export default function ProfileImageInput({ value, onChange }) {
             </div>
           )}
 
-          {/* Center hover/click overlay for desktop */}
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
@@ -46,7 +49,6 @@ export default function ProfileImageInput({ value, onChange }) {
             <Pencil className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
 
-          {/* Hidden input */}
           <input
             ref={fileRef}
             type="file"
@@ -56,7 +58,6 @@ export default function ProfileImageInput({ value, onChange }) {
           />
         </div>
 
-        {/* Top-right floating edit icon (always visible) */}
         <button
           type="button"
           onClick={() => fileRef.current?.click()}

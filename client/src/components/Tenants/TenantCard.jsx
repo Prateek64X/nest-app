@@ -8,7 +8,10 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import AddEditTenantModal from './AddEditTenantModal';
-import { FaIdCard, FaPassport, FaFileAlt, FaFileSignature, FaFileContract, FaUserEdit } from "react-icons/fa";
+import { FaIdCard, FaPassport, FaFileAlt, FaFileSignature, FaFileContract, FaUserEdit, FaExclamationTriangle } from "react-icons/fa";
+import { AlertDialogLu } from '../shared/AlertDialogLu';
+import { MdDelete } from 'react-icons/md';
+import { deleteTenant } from '@/services/tenantsService';
 
 export default function TenantCard({ tenant, rooms }) {
     const [expanded, setExpanded] = useState(false);
@@ -79,6 +82,17 @@ function ExpandedTenant({ tenant, rooms }) {
     );
 
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+
+    async function handleDeleteTenant() {
+        if (tenant?.id !== undefined) {
+            let res = await deleteTenant(tenant.id);
+            if (res.success) {
+                setShowSuccessDialog(true);
+            }
+        }
+    }
 
     return (
         <div className="flex flex-col">
@@ -111,13 +125,19 @@ function ExpandedTenant({ tenant, rooms }) {
             <div></div>
 
             {/* Edit Member Button */}
-            <Button 
-                onClick={() => setShowEditModal(true)}
-                className="mt-2 w-full col-span-full flex items-center justify-center gap-2"
-            >
-                <FaUserEdit className="w-4 h-4" />
-                Edit Member
-            </Button>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+                <Button variant="secondary" size="sm" className="gap-1" onClick={() => setShowDeleteDialog(true)}>
+                    <MdDelete className="w-4 h-4" />
+                    Remove
+                </Button>
+                <Button 
+                    onClick={() => setShowEditModal(true)}
+                    className="flex items-center justify-center gap-2"
+                >
+                    <FaUserEdit className="w-4 h-4" />
+                    Edit Tenant
+                </Button>
+            </div>
 
             {showEditModal && (
                 <AddEditTenantModal
@@ -127,6 +147,31 @@ function ExpandedTenant({ tenant, rooms }) {
                     onSubmit={(data) => console.log(data)}
                 />
             )}
+
+            {/* Delete tenant alert */}
+            <AlertDialogLu
+                open={showDeleteDialog}
+                onOpenChange={setShowDeleteDialog}
+                icon={tenant?.full_name && <FaExclamationTriangle />}
+                title={"Are you sure?"}
+                description={
+                    "This action cannot be undone. This will permanently delete the tenant and remove its data."
+                }
+                cancelLabel={"Cancel"}
+                actionLabel={"Delete Tenant"}
+                showActionButton={true}
+                onConfirm={handleDeleteTenant || undefined}
+            />
+    
+            {/* Success Dialog */}
+            <AlertDialogLu
+                open={showSuccessDialog}
+                onOpenChange={setShowSuccessDialog}
+                title={"Success"}
+                description={"Tenant is deleted successfully."}
+                cancelLabel={"Close"}
+                showActionButton={false}
+            />
         </div>
     );
 }
