@@ -13,10 +13,9 @@ export const createRoom = async (req, res) => {
     const room = await prisma.rooms.create({
       data: {
         admin_id,
-        tenant_id: null,
         name,
         floor,
-        price,
+        price: Number(price),
         occupied: false,
       },
       select: { id: true }
@@ -167,7 +166,7 @@ export const updateRoomById = async (req, res) => {
       data: {
         name,
         floor,
-        price,
+        price: Number(price),
       },
     });
 
