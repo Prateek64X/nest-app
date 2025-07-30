@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import routes from "./routes/index.js";
+import { createRoomRentEntries } from "./controllers/roomRentController.js";
 
 dotenv.config();
 

@@ -4,9 +4,9 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 
-export default function MarkPaidModal({onClose, handlePaymentChange, rentData}) {
-    const [totalCost, setTotalCost] = useState(Number(rentData?.totalCost) || 0);
-    const [remainingCost, setRemainingCost] = useState(Number(rentData?.totalCost - rentData?.paidCost) || 0);
+export default function MarkPaidModal({onClose, handlePaymentChange, existingTotalCost, existingpaidAmount}) {
+    const [totalCost, setTotalCost] = useState(Number(existingTotalCost) || 0);
+    const [remainingCost, setRemainingCost] = useState(Number(existingTotalCost - existingpaidAmount) || 0);
     const [currentPayment, setCurrentPayment] = useState(remainingCost || 0);
 
     return(
@@ -29,7 +29,12 @@ export default function MarkPaidModal({onClose, handlePaymentChange, rentData}) 
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                         <Button id='cancel-btn' variant='secondary' onClick={(e) => {e.preventDefault(); onClose();}}>Cancel</Button>
-                        <Button id='update-payment' onClick={(e) => {e.preventDefault(); handlePaymentChange();}}>Confirm Payment</Button>
+                        <Button id='update-payment' onClick={(e) => {
+                            e.preventDefault(); 
+                            handlePaymentChange(Number(currentPayment) || 0);
+                        }}>
+                            Confirm Payment
+                        </Button>
                     </div>
                 </form>
             </div>
