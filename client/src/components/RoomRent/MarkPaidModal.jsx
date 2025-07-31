@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import Modal from "./shared/Modal";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Button } from "./ui/button";
+import Modal from "../shared/Modal";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Button } from "../ui/button";
 
 export default function MarkPaidModal({onClose, handlePaymentChange, existingTotalCost, existingpaidAmount}) {
     const [totalCost, setTotalCost] = useState(Number(existingTotalCost) || 0);

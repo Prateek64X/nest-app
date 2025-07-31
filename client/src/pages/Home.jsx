@@ -1,7 +1,7 @@
 import React from 'react';
 import DateView from '@/components/DateView';
-import RentCard from '@/components/RentCard';
-import RentCardList from '@/components/RentCardList';
+import RentCard from '@/components/RoomRent/RentCard';
+import RentCardList from '@/components/RoomRent/RentCardList';
 
 const Home = () => {
     return (

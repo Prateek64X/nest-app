@@ -20,7 +20,6 @@ export async function loginAdmin({ phone, password }) {
         const res = await api.post("/admin/login", {
             phone, password
         });
-
         return res.data;
     } catch (err) {
         const message = err.response?.data?.error || "Could not login";

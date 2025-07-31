@@ -16,6 +16,28 @@ import AddEditDocumentsModal from './AddEditDocumentsModal';
 import { createTenant, getTenantById, TENANT_DOC_KEY_MAP, TENANT_DOC_KEY_MAP_REVERSE, updateTenant } from '@/services/tenantsService';
 import ProfileImageInput from '../shared/ProfileImageInput';
 import { AlertDialogLu } from '../shared/AlertDialogLu';
+import * as z from "zod";
+import { cn } from '@/lib/utils';
+
+const tenantSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  phone: z
+    .preprocess((val) => {
+      // Remove non-digit characters and take last 10 digits
+      const digits = String(val).replace(/\D/g, '');
+      return digits.slice(-10); // Get last 10 digits
+    }, z
+      .string()
+      .refine((val) => /^\d{10}$/.test(val), {
+        message: "Phone must be a 10-digit number",
+      })
+    ),
+  joinDate: z.date({
+    required_error: "Join date is required",
+  }),
+  selectedRooms: z.array(z.number()).min(1, "Select at least one room"),
+});
+
 
 export default function AddEditTenantModal({
     isEdit = false,
@@ -51,6 +73,7 @@ export default function AddEditTenantModal({
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+    const [formErrors, setFormErrors] = useState({});
 
     useEffect(() => {
         // Edit Mode: Fetch existing tenant data on start
@@ -78,7 +101,6 @@ export default function AddEditTenantModal({
                             ])
                         );
 
-                        console.log("Fetch Tenant: ", updatedDocuments)
                         setTenantDocuments((prev) => ({...prev, ...updatedDocuments}));
 
                         // Fetch selected rooms data
@@ -117,6 +139,22 @@ export default function AddEditTenantModal({
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+
+        const validationResult = tenantSchema.safeParse({
+            name: tenantData.name?.trim(),
+            phone: tenantData.phone,
+            joinDate: tenantData.joinDate,
+            selectedRooms,
+        });
+
+        if (!validationResult.success) {
+            const errors = {};
+            validationResult.error.issues.forEach((issue) => {
+            errors[issue.path[0]] = issue.message;
+            });
+            setFormErrors(errors);
+            return;
+        }
 
         try {
             const formData = new FormData();
@@ -175,12 +213,12 @@ export default function AddEditTenantModal({
 
     // Convert rooms for MultiSelect display
     const multiSelectOptions = rooms
-        .filter((r) => !r.occupied)
+        .filter((r) => !r.occupied || selectedRooms.includes(r.id))
         .map((r) => ({
             id: r.id,
-            name: `Floor ${r.floor} - ${r.name}`
-        }
-    ));
+            name: `Floor ${r.floor} - ${r.name}`,
+    }));
+
 
     return (
         <Modal onClose={onClose}>
@@ -204,6 +242,7 @@ export default function AddEditTenantModal({
                             value={tenantData.name}
                             placeholder="Enter full name"
                             onChange={(e) => setTenantData((prev) => ({ ...prev, name: e.target.value }))}
+                            className={cn(formErrors.name && "border-destructive")}
                         />
                     </div>
 
@@ -213,6 +252,7 @@ export default function AddEditTenantModal({
                             nameValue="tenant-phone"
                             valueInput={tenantData.phone}
                             onChangeInput={(phone) => setTenantData((prev) => ({ ...prev, phone }))}
+                            formError={formErrors.phone}
                         />
                     </div>
 
@@ -245,6 +285,7 @@ export default function AddEditTenantModal({
                             selected={selectedRooms}
                             onChange={setSelectedRooms}
                         />
+                        {formErrors.selectedRooms && <p className="text-sm text-destructive">{formErrors.selectedRooms}</p>}
                     </div>
 
                     {selectedRooms.length > 0 && (

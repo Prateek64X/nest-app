@@ -7,27 +7,46 @@ import PhoneInputLu from '@/components/shared/PhoneInputLu';
 import { loginAdmin } from '@/services/adminService';
 import { useAuth } from '@/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  phone: z
+    .preprocess((val) => {
+      const digits = String(val).replace(/\D/g, '');
+      return digits.slice(-10);
+    }, z
+      .string()
+      .refine((val) => /^\d{10}$/.test(val), {
+        message: 'Enter a valid 10-digit phone number',
+      })
+    ),
+  password: z
+    .string()
+    .min(1, { message: 'Password is required' }),
+});
 
 export default function Login() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [formErrors, setFormErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    const result = loginSchema.safeParse({ phone, password });
 
-    // Validation
-    if (!phone || !password) {
-      alert("Please enter correct details");
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      setFormErrors(fieldErrors);
       return;
     }
 
     try {
-      const res = await loginAdmin({ phone, password });
+      const res = await loginAdmin({ phone: phone, password });
       login(res.admin, res.token);
-      navigate("/");
+      navigate('/');
     } catch (err) {
       alert(`Error: ${err.message}`);
     }
@@ -51,6 +70,7 @@ export default function Login() {
               nameValue="admin-phone"
               valueInput={phone}
               onChangeInput={setPhone}
+              formError={formErrors.phone}
             />
           </div>
 
@@ -63,8 +83,7 @@ export default function Login() {
                 placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
-                className="pr-12"
+                className={formErrors.password ? 'border-destructive' : 'pr-12'}
               />
 
               <Button
@@ -76,6 +95,9 @@ export default function Login() {
                 {showPassword ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
               </Button>
             </div>
+            {formErrors.password && (
+              <span className="text-xs text-destructive">{formErrors.password}</span>
+            )}
           </div>
 
           <Button type="submit" className="w-full gap-2">
@@ -86,11 +108,11 @@ export default function Login() {
       </div>
 
       <div className="text-center text-sm text-muted-foreground pt-2">
-        Don't have an account?{" "}
+        Don't have an account?{' '}
         <Button
           type="button"
           variant="ghost"
-          onClick={() => navigate("/register")}
+          onClick={() => navigate('/register')}
           className="text-primary hover:bg-accent font-medium px-2"
         >
           Register

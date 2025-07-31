@@ -1,5 +1,15 @@
 import api from "@/api/api";
 
+export async function getUpcomingRoomRents() {
+  try {
+    const res = await api.get(`/room-rents/upcoming`);
+    return res.data?.data;
+  } catch (err) {
+    const message = err.response?.data?.error || "Fetching upcoming room rents failed";
+    throw new Error(message);
+  }
+}
+
 export async function getRoomRents() {
   try {
     const res = await api.get('/room-rents');

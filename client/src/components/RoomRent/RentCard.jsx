@@ -62,7 +62,6 @@ export default function RentCard({ existingRoomRent }) {
         maintenanceCost: data.maintenanceCost,
         paidAmount: data.paidAmount,
       });
-      console.log("Updated:", data);
     } catch (err) {
       console.error("Update failed:", err.message);
     }

@@ -82,7 +82,7 @@ export default function RoomCard({ room, tenant }) {
           onClose={() => setShowEditModal(false)}
           onSubmit={(updatedRoom) => {
             // Add update logic here (API, state update, etc.)
-            console.log('Updated Room:', updatedRoom);
+            console.log('Updated Room:', updatedRoom); //todo show dialog
             setShowEditModal(false);
           }}
         />

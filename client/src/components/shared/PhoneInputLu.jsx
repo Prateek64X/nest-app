@@ -1,7 +1,7 @@
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/bootstrap.css';
 
-export default function PhoneInputLu({ nameValue, valueInput, onChangeInput }) {
+export default function PhoneInputLu({ nameValue, valueInput, onChangeInput, formError }) {
     return (
         <>
             <PhoneInput
@@ -25,6 +25,9 @@ export default function PhoneInputLu({ nameValue, valueInput, onChangeInput }) {
                 buttonClass="focus-visible:!ring-[3px] focus-visible:!border-ring focus-visible:!ring-ring/50 transition-shadow rounded-md"
                 inputClass="!rounded-md !shadow-xs !border-input focus-visible:!ring-[3px] focus-visible:!border-ring focus-visible:!ring-ring/50 transition-shadow"
             />
+            {formError && (
+              <span className="text-xs text-destructive">{formError}</span>
+            )}
         </>
     );
 }

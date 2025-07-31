@@ -1,5 +1,5 @@
 import prisma from '../db/prisma.js';
-import { addDays, startOfMonth, isSameMonth } from 'date-fns';
+import { addDays, startOfMonth, endOfMonth } from 'date-fns';
 
 let billingMonth = addDays(startOfMonth(new Date()), 1);
 
@@ -164,6 +164,70 @@ export const getRoomRents = async (req, res) => {
   }
 };
 
+export const getUpcomingRoomRents = async (req, res) => {
+  const { id: admin_id } = req.admin;
+
+  try {
+    const now = new Date();
+    const monthStart = startOfMonth(now);
+    const monthEnd = endOfMonth(now);
+
+    // 1. Get tenants who moved in this month and have no rent entry yet
+    const tenants = await prisma.tenants.findMany({
+      where: {
+        admin_id,
+        move_in_date: {
+          gte: monthStart,
+          lte: monthEnd,
+        },
+        room_rents: {
+          none: {},
+        },
+      },
+      select: {
+        id: true,
+        full_name: true,
+        photo_url: true,
+        rooms: {
+          select: {
+            id: true,
+            tenant_id: true,
+            name: true,
+            floor: true,
+            price: true,
+          },
+        },
+      },
+    });
+
+    // 2. Format results
+    const data = tenants.map((tenant) => {
+      return {
+        tenant: {
+          id: tenant.id,
+          full_name: tenant.full_name,
+          photo_url: tenant.photo_url,
+        },
+        rooms: tenant.rooms.map((room) => ({
+          tenant_id: room.tenant_id,
+          name: room.name,
+          floor: room.floor,
+          total_cost: room.price,
+        })),
+        total_cost: tenant.rooms.reduce(
+          (acc, room) => acc + parseFloat(room.price),
+          0
+        ),
+      };
+    });
+
+    res.status(200).json({ success: true, data });
+  } catch (err) {
+    console.error("getUpcomingRoomRents error:", err);
+    res.status(500).json({ error: err.message || err, message: "Internal server error" });
+  }
+};
+
 export const updateRoomRent = async (req, res) => {
   const { id: admin_id } = req.admin;
   const { id } = req.params;
@@ -175,9 +239,6 @@ export const updateRoomRent = async (req, res) => {
     maintenanceCost, 
     paidAmount
   } = req.body;
-
-  console.log("Update room rent, data = ",{roomId, roomCost, electricityCost, 
-    electricityUnits, maintenanceCost, paidAmount});
 
   if (!id || !roomId || isNaN(Number(roomId))) {
     return res.status(400).json({ error: "Invalid ID or roomId", id, roomId });

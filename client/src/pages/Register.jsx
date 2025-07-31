@@ -7,6 +7,24 @@ import PhoneInputLu from '@/components/shared/PhoneInputLu';
 import { registerAdmin } from "@/services/adminService";
 import { useAuth } from '@/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
+import * as z from 'zod';
+import { cn } from '@/lib/utils';
+
+const registerSchema = z.object({
+  name: z.string().min(1, 'Enter a valid full name'),
+  phone: z.preprocess(
+    (val) => {
+      const digits = String(val).replace(/\D/g, '');
+      return digits.slice(-10);
+    },
+    z.string().refine((val) => /^\d{10}$/.test(val), {
+      message: 'Phone must be a 10-digit number',
+    })
+  ),
+  email: z.string().email('Enter a valid email address').optional(),
+  password: z.string().min(1, 'Password is required'),
+  homeName: z.string().min(1, 'Enter a valid home name'),
+});
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -15,21 +33,33 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [homeName, setHomeName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { register } = useAuth();
+  const [formErrors, setFormErrors] = useState({});
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
-    if (!name || !phone || !password || !homeName) {
-      alert("Please fill in all required fields.");
+    const result = registerSchema.safeParse({ name, phone, email, password, homeName });
+
+    if (!result.success) {
+      const fieldErrors = {};
+      result.error.issues.forEach((issue) => {
+        fieldErrors[issue.path[0]] = issue.message;
+      });
+      setFormErrors(fieldErrors);
       return;
     }
 
     try {
-      const res = await registerAdmin({ name, phone, email, password, home_name: homeName });
-      register(res.admin, res.token);
+      const res = await registerAdmin({
+        name,
+        phone,
+        email,
+        password,
+        home_name: homeName,
+      });
+      login(res.admin, res.token);
       navigate("/");
     } catch (err) {
       alert(`Error: ${err.message}`);
@@ -48,82 +78,85 @@ export default function Register() {
         <h2 className="text-lg font-semibold text-foreground">Register Admin</h2>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="space-y-2">
-                <Label htmlFor="admin-name">Name</Label>
-                <Input
-                id="admin-name"
-                placeholder="Enter full name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                />
+          <div className="space-y-2">
+            <Label htmlFor="admin-name">Name</Label>
+            <Input
+              id="admin-name"
+              placeholder="Enter full name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={cn(formErrors.name && 'border-destructive')}
+            />
+            {formErrors.name && <p className="text-sm text-destructive">{formErrors.name}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="admin-phone">Phone</Label>
+            <PhoneInputLu
+              nameValue="admin-phone"
+              valueInput={phone}
+              onChangeInput={setPhone}
+              formError={formErrors.phone}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="admin-email">Email</Label>
+            <Input
+              id="admin-email"
+              type="email"
+              placeholder="Enter email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={cn(formErrors.email && 'border-destructive')}
+            />
+            {formErrors.email && <p className="text-sm text-destructive">{formErrors.email}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="admin-password">Password</Label>
+            <div className="relative">
+              <Input
+                id="admin-password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={cn("pr-12", formErrors.password && 'border-destructive')}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-0 top-0 h-full px-2 flex items-center justify-center rounded-r-md text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
+              </Button>
             </div>
+            {formErrors.password && <p className="text-sm text-destructive">{formErrors.password}</p>}
+          </div>
 
-            <div className="space-y-2">
-                <Label htmlFor="admin-phone">Phone</Label>
-                <PhoneInputLu
-                  nameValue="admin-phone"
-                  valueInput={phone}
-                  onChangeInput={setPhone}
-                />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="admin-home">Home Name</Label>
+            <Input
+              id="admin-home"
+              placeholder="Enter home name"
+              value={homeName}
+              onChange={(e) => setHomeName(e.target.value)}
+              className={cn(formErrors.homeName && 'border-destructive')}
+            />
+            {formErrors.homeName && <p className="text-sm text-destructive">{formErrors.homeName}</p>}
+          </div>
 
-            <div className="space-y-2">
-                <Label htmlFor="admin-email">Email</Label>
-                <Input
-                  id="admin-email"
-                  type="email"
-                  placeholder="Enter email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-            </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="admin-password">Password</Label>
-                <div className="relative">
-                    <Input
-                    id="admin-password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="pr-12"
-                    />
-
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        className="absolute right-0 top-0 h-full px-2 flex items-center justify-center rounded-r-md text-muted-foreground hover:text-foreground"
-                    >
-                    {showPassword ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
-                    </Button>
-                </div>
-            </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="admin-home">Home Name</Label>
-                <Input
-                id="admin-home"
-                placeholder="Enter home name"
-                value={homeName}
-                onChange={(e) => setHomeName(e.target.value)}
-                required
-                />
-            </div>
-
-            <Button type="submit" className="w-full gap-2">
-                <FaUserPlus />
-                Register
-            </Button>
-            </form>
+          <Button type="submit" className="w-full gap-2">
+            <FaUserPlus />
+            Register
+          </Button>
+        </form>
       </div>
 
       <div className="text-center text-sm text-muted-foreground pt-2">
-        Already have account?{" "}
+        Already have account?{' '}
         <Button
           type="button"
           variant="ghost"
@@ -132,7 +165,7 @@ export default function Register() {
         >
           Login
         </Button>
-        </div>
+      </div>
     </div>
   );
 }

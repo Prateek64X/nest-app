@@ -16,7 +16,6 @@ export const TENANT_DOC_KEY_MAP_REVERSE = Object.fromEntries(
 
 export async function createTenant(formData) {
   try {
-    console.log("Create Tenant Form Data", formData);
     const res = await api.post('/tenants/create', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',

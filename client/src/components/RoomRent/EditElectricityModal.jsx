@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import Modal from './shared/Modal';
+import Modal from '../shared/Modal';
 import { Label } from "@/components/ui/label"
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { truncateNumber } from '../lib/utils.js';
+import { truncateNumber } from '../../lib/utils.js';
 
 export default function EditElectricityModal({
   prevElectricityUnits,
