@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import RentCard from './RentCard';
 import UpcomingRentCard from './UpcomingRentCard';
 import LoaderLu from '../shared/LoaderLu';
@@ -8,7 +8,7 @@ export default function RentCardList({ roomRents, upcomingRents, refreshRoomRent
   if (loading) {
     return (
       <div className={className}>
-        <h2 className='text-lg font-normal text-primary tracking-tight'>Paying Guests</h2>
+        <h2 className='text-lg font-normal text-primary tracking-tight'>Room Rents</h2>
         <LoaderLu />
       </div>
     );
@@ -17,7 +17,7 @@ export default function RentCardList({ roomRents, upcomingRents, refreshRoomRent
   if (roomRents.length === 0) {
     return (
       <div className={className}>
-        <h2 className='text-lg font-normal text-primary tracking-tight'>Paying Guests</h2>
+        <h2 className='text-lg font-normal text-primary tracking-tight'>Room Rents</h2>
         <p className="text-sm text-muted-foreground mt-2">No room rents found.</p>
       </div>
     );
@@ -25,7 +25,7 @@ export default function RentCardList({ roomRents, upcomingRents, refreshRoomRent
 
   return (
     <div className={className + ' space-y-2'}>
-      <h2 className='text-lg font-normal text-primary tracking-tight'>Paying Guests</h2>
+      <h2 className='text-lg font-normal text-primary tracking-tight'>Room Rents</h2>
       {roomRents.map((rent) => (
         <RentCard key={rent.id} existingRoomRent={rent} refreshRoomRents={refreshRoomRents} />
       ))}

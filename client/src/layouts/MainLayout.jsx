@@ -1,12 +1,14 @@
 import { Outlet } from 'react-router-dom';
-import { FaBed, FaHome, FaUserFriends } from 'react-icons/fa';
+import { FaBed, FaHome, FaUserCircle, FaUserFriends } from 'react-icons/fa';
 import Navbar from '../components/Navbar';
+import { Toaster } from 'sonner';
 
 export default function MainLayout() {
   const navList = [
     { label: 'Home', icon: <FaHome />, path: '/' },
     { label: 'Tenants', icon: <FaUserFriends />, path: '/tenants' },
     { label: 'Rooms', icon: <FaBed />, path: '/rooms' },
+    { label: 'Profile', icon: <FaUserCircle />, path: '/profile' },
   ];
 
   return (
@@ -15,6 +17,7 @@ export default function MainLayout() {
         <Outlet />
       </div>
       <Navbar navigationRoutes={navList} />
+      <Toaster position="top-center" richColors />
     </>
   );
 }

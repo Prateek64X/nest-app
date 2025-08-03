@@ -6,8 +6,6 @@ import { MdOutlineAdd } from 'react-icons/md';
 import { getTenantsByIds } from '@/services/tenantsService';
 import { getRooms } from '@/services/roomsService';
 
-
-
 export default function Rooms() {
   const [rooms, setRooms] = useState([]);
   const [tenants, setTenants] = useState([]);
@@ -55,6 +53,10 @@ export default function Rooms() {
       {showModal && (
         <AddEditRoomModal
           onClose={() => setShowModal(false)}
+          onSubmit={() => {
+            setShowModal(false);
+            fetchRooms();
+          }}
         />
       )}
     </div>

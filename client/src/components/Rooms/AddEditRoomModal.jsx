@@ -100,7 +100,7 @@ export default function AddEditRoomModal({ isEdit = false, onClose, onSubmit, in
     } catch (err) {
       alert(`Error: ${err.message}`);
     } finally {
-      onSubmit(room);
+      onSubmit();
       setLoading(false);
     }
   };

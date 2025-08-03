@@ -1,11 +1,23 @@
 // src/routes/adminRoutes.js
 import express from 'express';
-import { loginAdmin, registerAdmin } from '../controllers/adminController.js';
+import { verifyToken } from '../middleware/auth.js';
+import { 
+    checkAdminPassword,
+    deleteAdminAccount, 
+    getAdminProfile, 
+    loginAdmin, 
+    registerAdmin, 
+    updateAdminProfile
+} from '../controllers/adminController.js';
 
 const router = express.Router();
 
 router.post('/login', loginAdmin);
 router.post('/register', registerAdmin);
+router.get("/profile", verifyToken, getAdminProfile);
+router.post("/verify-password", verifyToken, checkAdminPassword);
+router.put("/profile", verifyToken, updateAdminProfile);
+router.get("/delete", verifyToken, deleteAdminAccount);
 
 export default router;
 

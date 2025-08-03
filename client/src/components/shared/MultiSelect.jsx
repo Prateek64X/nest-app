@@ -24,15 +24,17 @@ export default function MultiSelectDropdown({ options = [], selected = [], onCha
       </PopoverTrigger>
       <PopoverContent className="w-85 max-h-[250px] overflow-y-auto p-2 space-y-2">
         {options.map((room) => (
-          <button
-            key={room.id}
-            type="button"
-            onClick={() => toggle(room.id)}
-            className="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded-md hover:bg-muted"
-          >
-            <Checkbox checked={selected.includes(room.id)} readOnly />
-            <span className="text-sm">{room.name}</span>
-          </button>
+          <div>
+            <button
+              key={room.id}
+              type="button"
+              onClick={() => toggle(room.id)}
+              className="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded-md hover:bg-muted"
+            >
+              <Checkbox checked={selected.includes(room.id)} readOnly />
+              <span className="text-sm">{room.name}</span>
+            </button>
+          </div>
         ))}
       </PopoverContent>
     </Popover>
