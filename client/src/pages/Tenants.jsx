@@ -57,7 +57,13 @@ export default function Tenants() {
                 <span onClick={() => setShowAddModal(true)} className="text-sm font-medium text-white">Add Tenant</span>
             </Button>
 
-            {showAddModal && <AddEditTenantModal onClose={() => setShowAddModal(false)}/>}
+            {showAddModal && 
+            <AddEditTenantModal 
+                onClose={() => {
+                    setShowAddModal(false);
+                    fetchTenants();
+                }}
+            />}
         </div>
     );
 }
