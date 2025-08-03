@@ -202,8 +202,6 @@ export default function AddEditTenantModal({
                     setShowSuccessDialog(true);
                 }
             }
-
-            onClose();
         } catch (err) {
             console.error(err.message || "Could not update");
         } finally {
@@ -333,7 +331,13 @@ export default function AddEditTenantModal({
                     </div>
                 </form>
                 
-                {showDocumentsModal && (<AddEditDocumentsModal onClose={() => setShowDocumentsModal(false)} onSave={(documents) => setTenantDocuments(documents)} existingDocuments={tenantDocuments}/>)}
+                {showDocumentsModal && (
+                    <AddEditDocumentsModal 
+                        onClose={() => setShowDocumentsModal(false)} 
+                        onSave={(documents) => setTenantDocuments(documents)} 
+                        existingDocuments={tenantDocuments}
+                    />
+                )}
                 {/* Success Dialog */}
                 {showSuccessDialog && (
                     <AlertDialogLu 
@@ -343,6 +347,7 @@ export default function AddEditTenantModal({
                         description={isEdit ? 'Tenant is updated successfully' : 'Tenant is added successfully'}
                         cancelLabel={"Close"}
                         showActionButton={false}
+                        onCancel={() => onClose()}
                     />
                 )}
                 

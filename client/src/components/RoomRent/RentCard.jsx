@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Accordion,
@@ -8,12 +8,6 @@ import {
 } from "@/components/ui/accordion"
 import {
   Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 
 import '@/styles/components.css';
@@ -21,7 +15,6 @@ import { FaCheck, FaHome, FaBolt, FaWallet } from "react-icons/fa";
 import { MdWaterDrop } from "react-icons/md";
 import EditElectricityModal from './EditElectricityModal';
 import MarkPaidModal from './MarkPaidModal';
-import { debounce } from 'lodash';
 import { updateRoomRent } from '@/services/roomRentsService';
 
 const getPaymentStatus = (totalCost, paidAmount) => {
@@ -34,12 +27,12 @@ const getPaymentStatus = (totalCost, paidAmount) => {
   return 'unknown';
 };
 
-export default function RentCard({ existingRoomRent }) {
-  const [expanded, SetExpanded] = useState(false);
+export default function RentCard({ existingRoomRent, refreshRoomRents }) {
+  const [roomRent, setRoomRent] = useState({ ...existingRoomRent });
   const [paymentStatus, setPaymentStatus] = useState(() =>
     getPaymentStatus(existingRoomRent?.totalCost, existingRoomRent?.paidAmount)
   );
-  const [roomRent, setRoomRent] = useState({ ...existingRoomRent });
+  const [expanded, SetExpanded] = useState(false);
 
   const updateRoomRentFields = (fields) => {
     const updated = { ...roomRent, ...fields };
@@ -51,21 +44,29 @@ export default function RentCard({ existingRoomRent }) {
     setRoomRent((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFieldBlur = async (data = roomRent) => {
+  const handleFieldBlur = async (fieldName, value) => {
+    let updatedData = { ...roomRent };
+
+    // Optional update if field and value are passed
+    if (fieldName && typeof value !== 'undefined') {
+      updatedData[fieldName] = value;
+    }
+
     try {
       await updateRoomRent({
-        id: data.id,
-        roomId: data.room?.id,
-        roomCost: data.roomCost,
-        electricityCost: data.electricityCost,
-        electricityUnits: data.electricityUnits,
-        maintenanceCost: data.maintenanceCost,
-        paidAmount: data.paidAmount,
+        id: updatedData.id,
+        roomId: updatedData.room?.id,
+        roomCost: updatedData.roomCost,
+        electricityCost: updatedData.electricityCost,
+        electricityUnits: updatedData.electricityUnits,
+        maintenanceCost: updatedData.maintenanceCost,
+        paidAmount: updatedData.paidAmount,
       });
     } catch (err) {
       console.error("Update failed:", err.message);
     }
   };
+
 
   return(
       <>
@@ -87,6 +88,7 @@ export default function RentCard({ existingRoomRent }) {
                             onFieldUpdate={handleFieldUpdate}
                             onFieldBlur={handleFieldBlur}
                             updateRoomRentFields={updateRoomRentFields}
+                            refreshRoomRents={refreshRoomRents}
                           />
                       </AccordionContent>
                   </AccordionItem>
@@ -129,7 +131,7 @@ function CollapsedRentContent({roomRent, isPaid, expanded}) {
     );
 }
 
-function ExpandedRentContent({ roomRent, isPaid, onFieldUpdate, onFieldBlur, updateRoomRentFields }) {
+function ExpandedRentContent({ roomRent, isPaid, onFieldUpdate, onFieldBlur, updateRoomRentFields, refreshRoomRents }) {
   const [showElectricityModal, setShowElectricityModal] = useState(false);
   const [showMarkPaidModal, setShowMarkPaidModal] = useState(false);
 
@@ -143,14 +145,16 @@ function ExpandedRentContent({ roomRent, isPaid, onFieldUpdate, onFieldBlur, upd
             label="Room Rent"
             value={roomRent?.roomCost?.toString() || ''}
             handleValueChange={(val) => onFieldUpdate("roomCost", parseFloat(val) || 0)}
-            handleBlur={onFieldBlur}
+            handleBlur={(val) => onFieldBlur("roomCost", parseFloat(val) || 0)}
           />
 
           <LabelRow
             icon={<FaBolt className="mr-1 text-muted-foreground" />}
             label="Electricity Cost"
             value={roomRent?.electricityCost?.toString() || ''}
-            onClick={() => setShowElectricityModal(true)}
+            onClick={() => {
+              setShowElectricityModal(true);
+            }}
           />
 
           <LabelRow
@@ -158,7 +162,7 @@ function ExpandedRentContent({ roomRent, isPaid, onFieldUpdate, onFieldBlur, upd
             label="Maintainance Cost"
             value={roomRent?.maintenanceCost?.toString() || ''}
             handleValueChange={(val) => onFieldUpdate("maintenanceCost", parseFloat(val) || 0)}
-            handleBlur={onFieldBlur}
+            handleBlur={(val) => onFieldBlur("maintenanceCost", parseFloat(val) || 0)}
           />
 
           <LabelRow
@@ -197,6 +201,7 @@ function ExpandedRentContent({ roomRent, isPaid, onFieldUpdate, onFieldBlur, upd
           onChange={({ electricityCost, electricityUnits }) => {
             updateRoomRentFields({ electricityCost, electricityUnits });
             setShowElectricityModal(false);
+            refreshRoomRents();
           }}
         />
       )}
@@ -212,6 +217,7 @@ function ExpandedRentContent({ roomRent, isPaid, onFieldUpdate, onFieldBlur, upd
             const newPaidAmount = (Number(roomRent?.paidAmount) || 0) + (Number(currentPayment) || 0);
             updateRoomRentFields({ paidAmount: newPaidAmount });
             setShowMarkPaidModal(false);
+            refreshRoomRents();
           }}
         />
       )}

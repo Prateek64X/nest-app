@@ -1,46 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import TenantCard from './TenantCard';
-import { getTenants } from '@/services/tenantsService';
-import { getRoomsByTenantId } from '@/services/roomsService';
+import LoaderLu from '../shared/LoaderLu';
 
-export default function TenantsCardList({ className }) {
-    const [tenants, setTenants] = useState([]);
-    const [rooms, setRooms] = useState([]);
-
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-
-    useEffect(() => {
-    async function fetchTenants() {
-        try {
-        const data = await getTenants();
-        setTenants(data.tenants);
-
-        const roomsResults = await Promise.all(
-            data.tenants
-            .filter((tenant) => tenant && tenant.id)
-            .map(async (tenant) => {
-                try {
-                    const res = await getRoomsByTenantId(tenant.id);
-                    return res || [];
-                } catch (error) {
-                    console.warn(`Failed to fetch room for tenant ${tenant.id}:`, error.message);
-                    return [];
-                }
-            })
-        );
-        const allRooms = roomsResults.flat();
-        setRooms(allRooms);
-        } catch (err) {
-        setError(err.message);
-        } finally {
-        setLoading(false);
-        }
-    }
-
-    fetchTenants();
-    }, []);
-
+export default function TenantsCardList({ tenants, rooms, loading, error, refreshTenants, className }) {
+    if (loading) return <LoaderLu />;
+    if (error) return <p className="text-red-500">Error: {error}</p>;
 
     return (
         <div className={`${className} space-y-2`}>
@@ -48,7 +12,7 @@ export default function TenantsCardList({ className }) {
             {tenants.map(tenant => {
                 const tenantRooms = rooms.filter((room) => room.tenant_id === tenant.id);
 
-                return <TenantCard key={tenant.id} tenant={tenant} rooms={tenantRooms} />
+                return <TenantCard key={tenant.id} tenant={tenant} rooms={tenantRooms} refreshTenants={refreshTenants} />
             })}
         </div>
     );

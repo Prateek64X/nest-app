@@ -14,7 +14,7 @@ import { AlertDialogLu } from '../shared/AlertDialogLu';
 import { FaExclamationTriangle, FaTrash } from 'react-icons/fa';
 import { deleteRoom } from '@/services/roomsService';
 
-export default function RoomCard({ room, tenant }) {
+export default function RoomCard({ room, tenant, refreshRooms }) {
   const [expanded, setExpanded] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -29,6 +29,7 @@ export default function RoomCard({ room, tenant }) {
       let deleted = await deleteRoom(room.id);
       if (deleted) {
         setShowSuccessDialog(true);
+        refreshRooms();
       }
     }
   }
@@ -80,10 +81,9 @@ export default function RoomCard({ room, tenant }) {
           isEdit={true}
           initialRoom={room}
           onClose={() => setShowEditModal(false)}
-          onSubmit={(updatedRoom) => {
-            // Add update logic here (API, state update, etc.)
-            console.log('Updated Room:', updatedRoom); //todo show dialog
+          onSubmit={() => {
             setShowEditModal(false);
+            refreshRooms();
           }}
         />
       )}

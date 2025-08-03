@@ -60,7 +60,7 @@ function FormField({ id, label, children, error }) {
   );
 }
 
-export default function AddEditRoomModal({ isEdit = false, onClose, initialRoom = {} }) {
+export default function AddEditRoomModal({ isEdit = false, onClose, onSubmit, initialRoom = {} }) {
   const [room, setRoom] = useState({
     name: initialRoom?.name ?? '',
     floor: initialRoom?.floor ?? '',
@@ -100,6 +100,7 @@ export default function AddEditRoomModal({ isEdit = false, onClose, initialRoom 
     } catch (err) {
       alert(`Error: ${err.message}`);
     } finally {
+      onSubmit(room);
       setLoading(false);
     }
   };

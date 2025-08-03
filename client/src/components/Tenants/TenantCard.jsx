@@ -13,7 +13,7 @@ import { AlertDialogLu } from '../shared/AlertDialogLu';
 import { MdDelete } from 'react-icons/md';
 import { deleteTenant } from '@/services/tenantsService';
 
-export default function TenantCard({ tenant, rooms }) {
+export default function TenantCard({ tenant, rooms, refreshTenants }) {
     const [expanded, setExpanded] = useState(false);
 
     return (
@@ -25,7 +25,7 @@ export default function TenantCard({ tenant, rooms }) {
                     </AccordionTrigger>
 
                     <AccordionContent className="pt-2 pb-0">
-                        <ExpandedTenant tenant={tenant} rooms={rooms} />
+                        <ExpandedTenant tenant={tenant} rooms={rooms} refreshTenants={refreshTenants} />
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>
@@ -63,7 +63,7 @@ function CollapsedTenant({ tenant, rooms, expanded }) {
     );
 }
 
-function ExpandedTenant({ tenant, rooms }) {
+function ExpandedTenant({ tenant, rooms, refreshTenants }) {
     const documentsLabelList = [
         { key: 'doc_aadhar', label: 'Aadhar', icon: <FaIdCard /> },
         { key: 'doc_pan', label: 'PAN', icon: <FaIdCard /> },
@@ -90,6 +90,7 @@ function ExpandedTenant({ tenant, rooms }) {
             let res = await deleteTenant(tenant.id);
             if (res.success) {
                 setShowSuccessDialog(true);
+                refreshTenants();
             }
         }
     }
@@ -144,7 +145,9 @@ function ExpandedTenant({ tenant, rooms }) {
                     isEdit={true}
                     tenantId={tenant.id}
                     onClose={() => setShowEditModal(false)}
-                    onSubmit={(data) => console.log(data)}
+                    onSubmit={() => {
+                        refreshTenants();
+                    }}
                 />
             )}
 
