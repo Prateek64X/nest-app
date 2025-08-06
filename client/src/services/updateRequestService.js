@@ -30,7 +30,7 @@ export async function updateUpdateRequest(id, status) {
 export async function getAllUpdateRequests(adminId) {
   try {
     const res = await api.get(`/update-requests/admin/${adminId}`);
-    return res.data;
+    return res.data?.requests;
   } catch (err) {
     const message = err.response?.data?.error || "Failed to fetch update requests";
     throw new Error(message);
@@ -41,7 +41,6 @@ export async function getAllUpdateRequests(adminId) {
 export async function getUpdateRequestTenant(tenantId) {
   try {
     const res = await api.get(`/update-requests/tenant/${tenantId}`);
-    console.log(res.data?.request) // test
     return res.data?.request;
   } catch (err) {
     const message = err.response?.data?.error || "Failed to check update status";

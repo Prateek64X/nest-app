@@ -30,7 +30,9 @@ export default function RentCardList({ roomRents, upcomingRents, refreshRoomRent
         <RentCard key={rent.id} existingRoomRent={rent} refreshRoomRents={refreshRoomRents} />
       ))}
 
-      <h2 className='mt-6 text-lg font-semibold text-primary tracking-tight ml-2'>Upcoming Next Month</h2>
+      {upcomingRents?.length > 0 && (
+        <h2 className='mt-6 text-lg font-semibold text-primary tracking-tight ml-2'>Upcoming Next Month</h2>
+      )}
       {upcomingRents.map((upcoming) => (
         <UpcomingRentCard rent={upcoming} />
       ))}

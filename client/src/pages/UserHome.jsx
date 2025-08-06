@@ -11,8 +11,7 @@ import { getRoomRentByTenant } from "@/services/roomRentsService";
 import { LabelRow } from "@/components/RoomRent/RentCard";
 import { useAuth } from "@/auth/AuthProvider";
 import UpdateRequestModal from "@/components/User/UpdateRequestModal";
-import { getUpdateRequestTenant, updateUpdateRequest } from "@/services/updateRequestService";
-import { cn } from "@/lib/utils";
+import { getUpdateRequestTenant } from "@/services/updateRequestService";
 import UpdateRequestCard from "@/components/User/UpdateRequestCard";
 
 export default function UserHome() {
@@ -50,28 +49,6 @@ export default function UserHome() {
       toast.error(message);
     }
   }
-
-  async function handleDismissRequest(req_id) {
-    if (!req_id) {
-      toast.error("Invalid request ID");
-    }
-
-    try {
-      const res = await updateUpdateRequest(req_id, "dismissed");
-      let toastMessage = 'Request Updated'
-      if (!res.success) {
-        toastMessage = 'Failed to update'
-        toast.error(toastMessage);
-      }
-      toast.success(toastMessage);
-      fetchUpdateRequests();
-    } catch (err) {
-      const message =
-        err?.message || err?.error || "Failed to update";
-      toast.error(message);
-    }
-  }
-
 
   useEffect(() => {
     fetchRoomRent();
@@ -144,7 +121,7 @@ export default function UserHome() {
         <div className="mt-6 space-y-2">
           <h2 className='text-lg font-semibold text-primary tracking-tight ml-2'>Update Requests</h2>
           {updateRequests.map((req) => (
-            <UpdateRequestCard request={req} onDismiss={handleDismissRequest} />
+            <UpdateRequestCard request={req} onDismiss={() => fetchUpdateRequests()} />
           ))}
         </div>
       )}
