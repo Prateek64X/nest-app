@@ -82,6 +82,25 @@ export async function updateTenant(formData) {
   }
 }
 
+// Update Tenant profile via user login
+export async function updateTenantProfile(data) {
+  try {
+    const { id } = data;
+
+    if (!id) {
+      throw new Error("Missing tenant ID for update");
+    }
+
+    const res = await api.patch(`/tenants/profile/${id}`, data);
+
+    return res.data;
+  } catch (err) {
+    const message = err.response?.data?.error || "Tenant profile update failed";
+    throw new Error(message);
+  }
+}
+
+
 // Delete by Id
 export async function deleteTenant(tenant_id) {
     try {

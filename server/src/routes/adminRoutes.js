@@ -1,8 +1,8 @@
 // src/routes/adminRoutes.js
 import express from 'express';
 import { verifyToken } from '../middleware/auth.js';
-import { 
-    checkAdminPassword,
+import {
+    checkPassword,
     deleteAdminAccount, 
     getAdminProfile, 
     loginAdmin, 
@@ -15,7 +15,7 @@ const router = express.Router();
 router.post('/login', loginAdmin);
 router.post('/register', registerAdmin);
 router.get("/profile", verifyToken, getAdminProfile);
-router.post("/verify-password", verifyToken, checkAdminPassword);
+router.post("/verify-password", verifyToken, checkPassword);
 router.put("/profile", verifyToken, updateAdminProfile);
 router.get("/delete", verifyToken, deleteAdminAccount);
 

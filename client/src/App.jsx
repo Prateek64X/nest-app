@@ -1,17 +1,19 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
-
 import Register from './pages/Register';
 import Login from './pages/Login';
+import ProtectedRoute, { UserProtectedRoute } from './auth/ProtectedRoute';
+import { AuthProvider } from './auth/AuthProvider';
+import { Toaster } from 'sonner';
 
 import Home from './pages/Home';
 import Tenants from './pages/Tenants';
 import Rooms from './pages/Rooms';
-
 import Profile from './pages/Profile';
-import ProtectedRoute from './auth/ProtectedRoute';
-import { AuthProvider } from './auth/AuthProvider';
-import { Toaster } from 'sonner';
+
+import UserLayout from './layouts/UserLayout';
+import UserHome from './pages/UserHome';
+import UserProfile from './pages/UserProfile';
 
 export default function App() {
   return (
@@ -23,7 +25,13 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
 
-          {/* Protected / App routes with layout */}
+          <Route element={<UserProtectedRoute />}>
+            <Route element={<UserLayout />}>
+              <Route path="/user" element={<UserHome />} />
+              <Route path="/user-profile" element={<UserProfile />} />
+            </Route>
+          </Route>
+
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout />}>
               <Route index element={<Home />} />

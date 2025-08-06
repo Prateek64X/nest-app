@@ -88,7 +88,7 @@ export default function Profile() {
   if (loading) return <div className="p-4">Loading...</div>;
 
   return (
-    <div className="min-h-screen pt-12 px-4">
+    <div className="min-h-screen pt-12">
       <Card className="max-w-md mx-auto">
         <CardHeader>
           <h2 className="text-lg font-semibold text-primary tracking-tight">My Profile</h2>

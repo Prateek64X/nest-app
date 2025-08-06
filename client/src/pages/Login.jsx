@@ -46,13 +46,24 @@ export default function Login() {
     }
 
     try {
-      const res = await loginAdmin({ phone: phone, password });
-      login(res.admin, res.token);
-      navigate('/');
+      const res = await loginAdmin({ phone, password });
+
+      // Check if the response has tenant or admin
+      if (res.admin) {
+        login(res.admin, res.token, 'admin');
+        navigate('/');
+      } else if (res.tenant) {
+        login(res.tenant, res.token, 'tenant');
+        navigate('/user');
+      } else {
+        throw new Error("Invalid login response");
+      }
+
     } catch (err) {
       toast.error(`Error: ${err.message}`);
     }
   };
+
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-start bg-muted px-4 py-10 space-y-6">

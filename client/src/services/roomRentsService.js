@@ -31,6 +31,30 @@ export async function getRoomRents() {
   }
 }
 
+// For one tenant logged in as user
+export async function getRoomRentByTenant() {
+  try {
+    const res = await api.get('/room-rents/tenant');
+
+    if (!res.data?.success) {
+      throw new Error(res.data?.message || "Unexpected server response");
+    }
+
+    const data = res.data?.data;
+
+    if (!data || typeof data !== "object") {
+      throw new Error("Invalid data format: expected an object");
+    }
+
+    return data;
+  } catch (err) {
+    const message = err.response?.data?.error 
+      || err.response?.data?.message 
+      || err.message 
+      || "Fetching tenant room rent failed";
+    throw new Error(message);
+  }
+}
 
 export async function updateRoomRent({ id, roomId, roomCost, electricityCost, electricityUnits, maintenanceCost, paidAmount }) {
   try {

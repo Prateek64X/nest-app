@@ -59,27 +59,45 @@ export const loginAdmin = async (req, res) => {
   }
 
   try {
+    // First try to login as admin
     const admin = await prisma.admins.findUnique({
       where: { phone_number: phone },
     });
+    if (admin) {
+      const isMatch = await bcrypt.compare(password, admin.password);
+      if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
-    if (!admin) {
+      const token = generateToken({ id: admin.id, role: "admin" });
+
+      return res.status(200).json({
+        success: true,
+        message: "Login successful",
+        token,
+        admin: { id: admin.id },
+      });
+    }
+
+    // If not found as admin, try as tenant
+    const tenant = await prisma.tenants.findUnique({
+      where: { phone },
+    });
+
+    if (!tenant || !tenant.password) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const isMatch = await bcrypt.compare(password, admin.password);
-
-    if (!isMatch) {
+    // If tenant password is stored in plain text, direct match
+    if (tenant.password !== password) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const token = generateToken({ id: admin.id });
+    const token = generateToken({ id: tenant.id, role: "tenant" });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Login successful",
       token,
-      admin: { id: admin.id },
+      tenant: { id: tenant.id },
     });
 
   } catch (err) {
@@ -115,29 +133,42 @@ export const getAdminProfile = async (req, res) => {
   }
 };
 
-export const checkAdminPassword = async (req, res) => {
-  const adminId = req.admin?.id;
+export const checkPassword = async (req, res) => {
   const { old_password } = req.body;
+  const userId = req.admin?.id || req.tenant?.id;
+  const role = req.admin ? "admin" : "tenant";
 
-  if (!adminId || !old_password) {
+  if (!userId || !old_password) {
     return res.status(400).json({ error: "Missing credentials" });
   }
 
   try {
-    const admin = await prisma.admins.findUnique({
-      where: { id: adminId },
-    });
+    if (role === "admin") {
+      const admin = await prisma.admins.findUnique({ where: { id: userId } });
 
-    if (!admin) {
-      return res.status(404).json({ error: "Admin not found" });
+      if (!admin) {
+        return res.status(404).json({ error: "Admin not found" });
+      }
+
+      const isMatch = await bcrypt.compare(old_password, admin.password);
+      if (!isMatch) {
+        return res.status(401).json({ error: "Incorrect password" });
+      }
+
+    } else {
+      const tenant = await prisma.tenants.findUnique({ where: { id: userId } });
+
+      if (!tenant) {
+        return res.status(404).json({ error: "Tenant not found" });
+      }
+
+      if (tenant.password !== old_password) {
+        return res.status(401).json({ error: "Incorrect password" });
+      }
     }
 
-    const isMatch = await bcrypt.compare(old_password, admin.password);
-    if (!isMatch) {
-      return res.status(401).json({ error: "Incorrect password" });
-    }
+    return res.status(200).json({ success: true });
 
-    res.status(200).json({ success: true });
   } catch (err) {
     console.error("Password check error:", err);
     res.status(500).json({ error: "Server error" });

@@ -128,7 +128,7 @@ export const getTenants = async (req, res) => {
 };
 
 export const getTenantById = async (req, res) => {
-  const { id: admin_id } = req.admin;
+  const { id: admin_id } = req.admin || {};
   const { id } = req.params; // tenant ID from URL
 
   if (!id) {
@@ -136,10 +136,17 @@ export const getTenantById = async (req, res) => {
   }
 
   try {
+    const whereClause = { id };
+    if (admin_id) {
+      whereClause.admin_id = admin_id;
+    }
+
     const tenant = await prisma.tenants.findFirst({
-      where: {
-        id: id,
-        admin_id,
+      where: whereClause,
+      include: {
+        rooms: {
+          select: { name: true },
+        },
       },
     });
 
@@ -324,6 +331,49 @@ export const updateTenant = async (req, res) => {
     return res.status(500).json({ error: "Something went wrong while updating tenant" });
   }
 };
+
+// Call it to update profile details by tenant login
+export const updateTenantProfile = async (req, res) => {
+  const { id: tenantId } = req.params;
+  const { full_name, phone, password } = req.body;
+
+  if (!tenantId || !full_name || !phone) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const existingTenant = await prisma.tenants.findUnique({ where: { id: tenantId } });
+
+    if (!existingTenant) {
+      return res.status(404).json({ error: "Tenant not found" });
+    }
+
+    const updateData = {
+      full_name,
+      phone,
+    };
+
+    if (password && password !== existingTenant.password) {
+      updateData.password = password;
+    }
+
+    const updatedTenant = await prisma.tenants.update({
+      where: { id: tenantId },
+      data: updateData,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Tenant profile updated successfully",
+      tenant: updatedTenant,
+    });
+
+  } catch (err) {
+    console.error("Error updating tenant profile:", err);
+    res.status(500).json({ error: "Error updating tenant profile" });
+  }
+};
+
 
 export const deleteTenant = async (req, res) => {
   const { id: tenantId } = req.params;

@@ -228,6 +228,93 @@ export const getUpcomingRoomRents = async (req, res) => {
   }
 };
 
+// Pass Tenant Id to get latest room rent
+export const getRoomRentByTenant = async (req, res) => {
+  const { id: tenant_id } = req.tenant || req.tenant_id;
+
+  if (!tenant_id) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  try {
+    // Get latest room rent entry for this tenant
+    const latestRent = await prisma.room_rents.findFirst({
+      where: { tenant_id },
+      orderBy: { created_at: "desc" },
+      select: {
+        id: true,
+        room_id: true,
+        tenant_id: true,
+        room_cost: true,
+        electricity_cost: true,
+        electricity_units: true,
+        maintenance_cost: true,
+        total_cost: true,
+        paid_amount: true,
+        payment_status: true,
+        created_at: true,
+        billing_month: true,
+        tenants: {
+          select: {
+            full_name: true,
+            photo_url: true,
+          }
+        },
+        rooms: {
+          select: {
+            name: true,
+            floor: true,
+          }
+        }
+      }
+    });
+
+    if (!latestRent) {
+      return res.status(404).json({ error: "No rent entry found for tenant" });
+    }
+
+    // Get previous month's electricity usage (optional)
+    const prevRent = await prisma.room_rents.findFirst({
+      where: {
+        tenant_id,
+        billing_month: { lt: latestRent.billing_month },
+      },
+      select: { electricity_units: true },
+      orderBy: { billing_month: 'desc' },
+    });
+
+    const data = {
+      id: latestRent.id,
+      tenant: {
+        id: latestRent.tenant_id,
+        fullName: latestRent.tenants?.full_name || '',
+        photoUrl: latestRent.tenants?.photo_url || '',
+      },
+      room: {
+        id: latestRent.room_id,
+        name: latestRent.rooms?.name || '',
+        floor: latestRent.rooms?.floor || '',
+      },
+      month: latestRent.created_at.toISOString().slice(0, 7),
+      roomCost: latestRent.room_cost,
+      electricityCost: latestRent.electricity_cost,
+      electricityUnits: latestRent.electricity_units,
+      prevElectricityUnits: prevRent?.electricity_units ?? 0,
+      maintenanceCost: latestRent.maintenance_cost,
+      totalCost: latestRent.total_cost,
+      paidAmount: latestRent.paid_amount,
+      paymentStatus: latestRent.payment_status,
+    };
+
+    return res.status(200).json({ success: true, data });
+
+  } catch (err) {
+    console.error("getRoomRentByTenant error:", err);
+    res.status(500).json({ error: err.message || err, message: "Internal server error" });
+  }
+};
+
+
 export const updateRoomRent = async (req, res) => {
   const { id: admin_id } = req.admin;
   const { id } = req.params;

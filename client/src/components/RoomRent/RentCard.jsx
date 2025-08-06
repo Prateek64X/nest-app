@@ -235,7 +235,7 @@ function ExpandedRentContent({ roomRent, isPaid, onFieldUpdate, onFieldBlur, upd
 }
 
 // Row to display Rent Type and Cost in Table
-function LabelRow({
+export function LabelRow({
   icon,
   label,
   symbol = "₹",
