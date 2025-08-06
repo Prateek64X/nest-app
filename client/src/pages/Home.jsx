@@ -29,7 +29,7 @@ const Home = () => {
 
     return (
         <div className='min-h-screen relative pt-12'>
-            <DateView className='absolute top-4 left-6'/>
+            <DateView className='absolute mt-2 left-2'/>
             <RentCardList roomRents={roomRents} upcomingRents={upcomingRents} refreshRoomRents={fetchRoomRents} loading={loading} className='mt-[15vh]'/>
         </div>
     );

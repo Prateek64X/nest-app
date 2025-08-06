@@ -11,9 +11,13 @@ export default function DateView ({className}) {
     }).format(today);
 
     return (
-        <div className={className}>
-            <h2 className="text-5xl font-semibold">{day}</h2>
-            <h2 className="text-4xl">{month}</h2>
-        </div>
-    );
+    <div className={`flex flex-col ${className}`}>
+      <p className="text-base font-normal" style={{ color: '#C27082' }}>
+        Welcome back 👋, Today’s
+      </p>
+      <h2 className="text-5xl font-normal text-primary">
+        {day} {month}
+      </h2>
+    </div>
+  );
 };

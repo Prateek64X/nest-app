@@ -5,7 +5,7 @@ export default function UpcomingRentCard({ rent }) {
   const { tenant, rooms, total_cost } = rent;
 
   return (
-    <Card className="p-4 relative bg-secondary">
+    <Card className="p-4 relative bg-card">
         <div className="flex items-start gap-4 w-full">
         {/* Tenant Photo */}
         <img

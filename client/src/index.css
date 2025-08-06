@@ -17,7 +17,7 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
-  --color-secondary-highlight: oklch(0.95 0.00274 342.824);
+  --color-secondary-highlight: hsl(348, 20%, 95%);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
@@ -40,36 +40,48 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-size-xs: 0.64rem; 
+  --font-size-sm: 0.8rem;  
+  --font-size-base: 1rem;  
+  --font-size-h6: 1.25rem; 
+  --font-size-h5: 1.563rem;
+  --font-size-h4: 1.953rem;
+  --font-size-h3: 2.441rem;
+  --font-size-h2: 3.052rem;
+  --font-size-h1: 3.815rem;
 }
 
 :root {
   --radius: 0.625rem;
 
-  --background: oklch(0.985 0 0);
-  --foreground: oklch(0.14 0.005 340);
+  --background: #FAF4F6;
+  --foreground: hsl(340, 10%, 20%);
 
-  --card: oklch(0.99 0 0);
+  --card: #FBF9FA;
   --card-foreground: var(--foreground);
 
   --popover: var(--card);
   --popover-foreground: var(--foreground);
 
-  --primary: oklch(0.645 0.246 16.439);
-  --primary-foreground: oklch(0.985 0 0);
-  
-  --secondary: oklch(0.967 0.00254 342.824); /* Soft pink */
-  --secondary-foreground: oklch(0.22 0.008 340);
+  --primary: #FF2056;
+  --primary-foreground: #ffffff;
 
-  --muted: oklch(0.96 0.01 340); 
-  --muted-foreground: oklch(0.48 0.008 340);
+  --secondary: #F6EAEC;
+  --secondary-foreground: #732637;
+  --secondary-muted-foreground: #4D3339;
 
-  --accent: var(--popover);
-  --accent-foreground: var(--popover-foreground);
+  --muted: #F7EDF0;
+  --muted-foreground: hsl(340, 7%, 50%);
 
-  --destructive: oklch(0.6 0.22 27);
+  --accent: var(--secondary);
+  --accent-foreground: var(--secondary-foreground);
 
-  --border: oklch(0.92 0.005 340);
-  --input: oklch(0.94 0.004 340);
+  --destructive: hsl(351, 80%, 48%);
+  --destructive-foreground: #ffffff;
+
+  --border: #F3E2E6;
+  --input: #F6EEF0;
   --ring: var(--primary);
 
   --sidebar: var(--background);
@@ -120,11 +132,35 @@
 }
 
 @layer base {
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .text-h1 { font-size: var(--font-size-h1); }
+  .text-h2 { font-size: var(--font-size-h2); }
+  .text-h3 { font-size: var(--font-size-h3); }
+  .text-h4 { font-size: var(--font-size-h4); }
+  .text-h5 { font-size: var(--font-size-h5); }
+  .text-h6 { font-size: var(--font-size-h6); }
+  .text-body { font-size: var(--font-size-base); }
+  .text-small { font-size: var(--font-size-sm); }
+  .text-xs { font-size: var(--font-size-xs); }
+  .shadow-sm {
+    box-shadow: 0 1px 4px 0px rgba(15, 10, 11, 0.05);
   }
 }
 

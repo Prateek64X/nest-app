@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,9 @@ import { useAuth } from '@/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import * as z from 'zod';
 import { cn } from '@/lib/utils';
+import clsx from "clsx";
+import NestLogo from '@/components/shared/NestLogo';
+import { toast } from 'sonner';
 
 const registerSchema = z.object({
   name: z.string().min(1, 'Enter a valid full name'),
@@ -62,17 +65,14 @@ export default function Register() {
       login(res.admin, res.token);
       navigate("/");
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      toast.error(`Error: ${err.message}`);
     }
   };
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-start bg-muted px-4 py-10 space-y-6">
+    <div className="min-h-dvh flex flex-col items-center justify-start bg-muted px-4 py-auto space-y-auto">
       {/* Logo + App Name */}
-      <div className="h-52 flex flex-col items-center justify-center">
-        <img src="/nest.svg" alt="Nest Logo" className="w-36 h-36" />
-        <h1 className="text-2xl font-semibold -mt-3 text-[color:oklch(0.645_0.246_16.439)]">Nest</h1>
-      </div>
+      <NestLogo />
 
       <div className="w-[340px] space-y-5 bg-background p-6 rounded-xl shadow-lg">
         <h2 className="text-lg font-semibold text-foreground">Register Admin</h2>
@@ -161,7 +161,7 @@ export default function Register() {
           type="button"
           variant="ghost"
           onClick={() => navigate("/login")}
-          className="text-primary hover:bg-accent font-medium px-2"
+          className="text-primary hover:bg-accent font-medium px-2 mb-12"
         >
           Login
         </Button>

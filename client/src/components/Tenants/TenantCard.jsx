@@ -127,7 +127,7 @@ function ExpandedTenant({ tenant, rooms, refreshTenants }) {
 
             {/* Edit Member Button */}
             <div className="grid grid-cols-2 gap-2 mt-2">
-                <Button variant="secondary" size="sm" className="gap-1" onClick={() => setShowDeleteDialog(true)}>
+                <Button variant="secondary" className="gap-1" onClick={() => setShowDeleteDialog(true)}>
                     <MdDelete className="w-4 h-4" />
                     Remove
                 </Button>

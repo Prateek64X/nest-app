@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/card";
 
 import '@/styles/components.css';
-import { FaCheck, FaHome, FaBolt, FaWallet } from "react-icons/fa";
-import { MdWaterDrop } from "react-icons/md";
+import { FaCheck, FaHome, FaBolt, FaWallet, FaEdit, FaRupeeSign } from "react-icons/fa";
+import { MdEdit, MdOutlineWallet, MdWaterDrop } from "react-icons/md";
 import EditElectricityModal from './EditElectricityModal';
 import MarkPaidModal from './MarkPaidModal';
 import { updateRoomRent } from '@/services/roomRentsService';
@@ -32,6 +32,7 @@ export default function RentCard({ existingRoomRent, refreshRoomRents }) {
   const [paymentStatus, setPaymentStatus] = useState(() =>
     getPaymentStatus(existingRoomRent?.totalCost, existingRoomRent?.paidAmount)
   );
+  const isPaid = paymentStatus === 'paid';
   const [expanded, SetExpanded] = useState(false);
 
   const updateRoomRentFields = (fields) => {
@@ -76,7 +77,7 @@ export default function RentCard({ existingRoomRent, refreshRoomRents }) {
                       <AccordionTrigger className="py-0 text-left">
                           <CollapsedRentContent 
                             roomRent={roomRent} 
-                            isPaid={paymentStatus} 
+                            isPaid={isPaid} 
                             expanded={expanded} 
                           />
                       </AccordionTrigger>
@@ -84,7 +85,7 @@ export default function RentCard({ existingRoomRent, refreshRoomRents }) {
                       <AccordionContent className="pt-0 pb-2">
                           <ExpandedRentContent
                             roomRent={roomRent}
-                            isPaid={paymentStatus}
+                            isPaid={isPaid}
                             onFieldUpdate={handleFieldUpdate}
                             onFieldBlur={handleFieldBlur}
                             updateRoomRentFields={updateRoomRentFields}
@@ -115,17 +116,10 @@ function CollapsedRentContent({roomRent, isPaid, expanded}) {
                 </div>
 
                 {/* Bottom Row */}
-                {!expanded ? 
-                (
-                    <div className="flex items-center">
-                        <span className='text-base font-medium text-primary'>₹ {roomRent?.totalCost}</span>
-                        {isPaid && <FaCheck className='w-3 h-3 text-green-600 ml-2' />}
-                    </div>
-                ) : (
-                    <span className="text-xs text-muted-foreground my-2">
-                    Cost Breakdown
-                    </span>
-                )}
+                <div className="flex items-center">
+                    <span className='text-base font-medium text-primary'>₹ {roomRent?.totalCost}</span>
+                    {isPaid && !expanded && <FaCheck className='w-3 h-3 text-green-600 ml-2' />}
+                </div>
             </div>
         </div>
     );
@@ -136,9 +130,15 @@ function ExpandedRentContent({ roomRent, isPaid, onFieldUpdate, onFieldBlur, upd
   const [showMarkPaidModal, setShowMarkPaidModal] = useState(false);
 
   return (
-    <div className='pl-16 mr-8'>
+    <div className='mt-3 pl-8 mr-8'>
       <div className='max-w-full w-full'>
-        <div className="grid grid-cols-[max-content_auto] items-center gap-y-2">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground my-2">
+            <div className="flex-grow border-t border-dotted border-gray-300"></div>
+            <span className="whitespace-nowrap">Cost Breakdown</span>
+            <div className="flex-grow border-t border-dotted border-gray-300"></div>
+          </div>
+
+        <div className="grid grid-cols-[max-content_auto] items-center gap-y-4">
 
           <LabelRow
             icon={<FaHome className="mr-1 text-muted-foreground" />}
@@ -187,9 +187,18 @@ function ExpandedRentContent({ roomRent, isPaid, onFieldUpdate, onFieldBlur, upd
         </div>
       </div>
 
-      {isPaid && <FaCheck className="relative right-8 bottom-4 -mb-2 w-3 h-3 text-green-600 ml-2" />}
+      {/* {isPaid && <FaCheck className="relative left-24 bottom-4 -mb-2 w-3 h-3 text-green-600" />} */}
       <Button className="w-full mt-4" onClick={() => setShowMarkPaidModal(true)}>
-        {isPaid ? "Edit Payment" : "Mark as Paid"}
+        {isPaid ? (<>
+            <MdEdit className="w-4 h-4" />
+            Edit Payment
+          </>
+          ) : (
+            <>
+            <MdOutlineWallet className="w-4 h-4" />
+            Mark as Paid
+            </>
+          )}
       </Button>
 
       {/* Electricity modal */}
@@ -235,7 +244,7 @@ function LabelRow({
   handleValueChange,
   handleBlur,
   labelClassName = "text-sm text-muted-foreground",
-  isTick,
+  isTick = false,
   readOnlyValue = false
 }) {
   return (
@@ -243,6 +252,7 @@ function LabelRow({
       <div className="flex items-center gap-1">
         <span className="text-muted-foreground shrink-0">{icon}</span>
         <span className={labelClassName}>{label}</span>
+        {isTick && <FaCheck className="relative left-1 w-3 h-3 text-green-600" />}
       </div>
 
       <div className="flex items-center justify-end shrink-0 ml-2">

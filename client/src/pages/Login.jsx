@@ -8,6 +8,8 @@ import { loginAdmin } from '@/services/adminService';
 import { useAuth } from '@/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
+import { toast } from 'sonner';
+import NestLogo from '@/components/shared/NestLogo';
 
 const loginSchema = z.object({
   phone: z
@@ -48,17 +50,14 @@ export default function Login() {
       login(res.admin, res.token);
       navigate('/');
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      toast.error(`Error: ${err.message}`);
     }
   };
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-start bg-muted px-4 py-10 space-y-6">
       {/* Logo + App Name */}
-      <div className="h-62 flex flex-col items-center justify-center">
-        <img src="/nest.svg" alt="Nest Logo" className="w-36 h-36" />
-        <h1 className="text-2xl font-semibold -mt-3 text-[color:oklch(0.645_0.246_16.439)]">Nest</h1>
-      </div>
+      <NestLogo />
 
       <div className="w-[340px] space-y-5 bg-background p-6 rounded-xl shadow-lg">
         <h2 className="text-lg font-semibold text-foreground">Login Admin</h2>

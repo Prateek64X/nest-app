@@ -9,6 +9,7 @@ import LoaderLu from '../shared/LoaderLu';
 import { AlertDialogLu } from '../shared/AlertDialogLu';
 import * as z from 'zod';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const roomSchema = z.object({
   name: z
@@ -84,7 +85,7 @@ export default function AddEditRoomModal({ isEdit = false, onClose, onSubmit, in
     }
 
     if (isEdit && !roomId) {
-      alert('Error: Missing room ID for update');
+      toast.error('Error: Missing room ID for update');
       return;
     }
 
@@ -98,7 +99,7 @@ export default function AddEditRoomModal({ isEdit = false, onClose, onSubmit, in
       }
       setShowSuccessDialog(true);
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      toast.error(`Error: ${err.message}`);
     } finally {
       onSubmit();
       setLoading(false);

@@ -8,7 +8,7 @@ export default function TenantsCardList({ tenants, rooms, loading, error, refres
 
     return (
         <div className={`${className} space-y-2`}>
-            <h2 className="text-lg font-normal text-primary tracking-tight">All Members</h2>
+            <h2 className="text-lg font-semibold text-primary tracking-tight ml-2">All Members</h2>
             {tenants.map(tenant => {
                 const tenantRooms = rooms.filter((room) => room.tenant_id === tenant.id);
 

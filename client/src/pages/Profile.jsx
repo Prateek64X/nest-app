@@ -91,7 +91,7 @@ export default function Profile() {
     <div className="min-h-screen pt-12 px-4">
       <Card className="max-w-md mx-auto">
         <CardHeader>
-          <h2 className="text-lg font-semibold text-foreground">Admin Profile</h2>
+          <h2 className="text-lg font-semibold text-primary tracking-tight">My Profile</h2>
         </CardHeader>
 
         <CardContent className="space-y-4">

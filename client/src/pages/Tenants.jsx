@@ -51,7 +51,7 @@ export default function Tenants() {
 
             {/* Floating Add Button */}
             <Button
-                className="fixed bottom-19 right-6 z-30 flex items-center gap-1 px-4 py-2 rounded-full bg-primary shadow-lg"
+                className="fixed bottom-20 right-6 z-30 flex items-center gap-1 px-4 py-2 rounded-full bg-primary shadow-lg"
             >
                 <MdOutlineAdd className="w-4 h-4 text-white" />
                 <span onClick={() => setShowAddModal(true)} className="text-sm font-medium text-white">Add Tenant</span>

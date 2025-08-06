@@ -57,13 +57,11 @@ export default function RoomCard({ room, tenant, refreshRooms }) {
 
             <AccordionContent className="pt-2 pb-0">
               <div className="grid grid-cols-2 gap-2">
-                <Button variant="secondary" size="sm" className="gap-1" onClick={() => setShowDeleteDialog(true)}>
+                <Button variant="secondary" className="gap-1" onClick={() => setShowDeleteDialog(true)}>
                   <MdDelete className="w-4 h-4" />
                   Remove
                 </Button>
                 <Button
-                  variant="outline"
-                  size="sm"
                   className="gap-1"
                   onClick={() => setShowEditModal(true)}
                 >

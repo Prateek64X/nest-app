@@ -11,6 +11,7 @@ import Rooms from './pages/Rooms';
 import Profile from './pages/Profile';
 import ProtectedRoute from './auth/ProtectedRoute';
 import { AuthProvider } from './auth/AuthProvider';
+import { Toaster } from 'sonner';
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
         </Routes>
         </div>
       </Router>
+      <Toaster position="top-center" richColors />
     </AuthProvider>
   );
 }
