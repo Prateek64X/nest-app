@@ -4,16 +4,24 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-import { FaBolt, FaHome, FaWallet } from "react-icons/fa";
-import { MdWaterDrop } from "react-icons/md";
+import { FaBolt, FaHome, FaTrash, FaWallet } from "react-icons/fa";
+import { MdClear, MdWaterDrop } from "react-icons/md";
 import { MdEdit } from "react-icons/md";
 import { getRoomRentByTenant } from "@/services/roomRentsService";
 import { LabelRow } from "@/components/RoomRent/RentCard";
+import { useAuth } from "@/auth/AuthProvider";
+import UpdateRequestModal from "@/components/User/UpdateRequestModal";
+import { getUpdateRequestTenant, updateUpdateRequest } from "@/services/updateRequestService";
+import { cn } from "@/lib/utils";
+import UpdateRequestCard from "@/components/User/UpdateRequestCard";
 
 export default function UserHome() {
+  const { user } = useAuth();
   const [roomRent, setRoomRent] = useState(null);
+  const [updateRequests, setUpdateRequests] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showUpdateRequest, setShowUpdateRequest] = useState(false);
 
   async function fetchRoomRent() {
     try {
@@ -31,8 +39,43 @@ export default function UserHome() {
     }
   }
 
+  async function fetchUpdateRequests() {
+    try {
+      const data = await getUpdateRequestTenant(user?.id);
+      setUpdateRequests(data);
+    } catch (err) {
+      const message =
+        err?.message || err?.error || "Failed to fetch update requests";
+      console.error("Request Fetch Error:", message);
+      toast.error(message);
+    }
+  }
+
+  async function handleDismissRequest(req_id) {
+    if (!req_id) {
+      toast.error("Invalid request ID");
+    }
+
+    try {
+      const res = await updateUpdateRequest(req_id, "dismissed");
+      let toastMessage = 'Request Updated'
+      if (!res.success) {
+        toastMessage = 'Failed to update'
+        toast.error(toastMessage);
+      }
+      toast.success(toastMessage);
+      fetchUpdateRequests();
+    } catch (err) {
+      const message =
+        err?.message || err?.error || "Failed to update";
+      toast.error(message);
+    }
+  }
+
+
   useEffect(() => {
     fetchRoomRent();
+    fetchUpdateRequests();
   }, []);
 
   if (loading) return <p className="pt-12 text-center text-muted-foreground">Loading...</p>;
@@ -90,11 +133,31 @@ export default function UserHome() {
           </div>
         </div>
 
-        <Button className="w-full mt-2" variant="secondary">
+        <Button className="w-full mt-2" variant="secondary" onClick={() => {setShowUpdateRequest(true)}}>
           <MdEdit className="w-4 h-4" />
           Request Updation
         </Button>
       </Card>
+
+      {/* Update Requests */}
+      {updateRequests?.length > 0 && (
+        <div className="mt-6 space-y-2">
+          <h2 className='text-lg font-semibold text-primary tracking-tight ml-2'>Update Requests</h2>
+          {updateRequests.map((req) => (
+            <UpdateRequestCard request={req} onDismiss={handleDismissRequest} />
+          ))}
+        </div>
+      )}
+
+      {showUpdateRequest && (
+        <UpdateRequestModal
+          tenant_id={user?.id || null}
+          onClose={() => {
+            setShowUpdateRequest(false);
+            fetchUpdateRequests();
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -17,7 +17,7 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
-  --color-secondary-highlight: hsl(348, 20%, 95%);
+  --color-secondary-highlight: hsl(348, 40%, 92%);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
@@ -67,7 +67,7 @@
   --primary: #FF2056;
   --primary-foreground: #ffffff;
 
-  --secondary: #F6EAEC;
+  --secondary: #F7E9EB;
   --secondary-foreground: #732637;
   --secondary-muted-foreground: #4D3339;
 

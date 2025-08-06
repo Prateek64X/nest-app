@@ -11,7 +11,7 @@ export default function UserLayout() {
 
   return (
     <>
-      <div className="px-4 pt-6 pb-24 bg-muted">
+      <div className="px-4 pt-6 pb-24 bg-background">
         <Header />
         <Outlet />
       </div>

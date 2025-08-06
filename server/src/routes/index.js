@@ -3,6 +3,7 @@ import adminRoutes from "./adminRoutes.js";
 import roomsRoutes from "./roomsRoutes.js";
 import tenantsRoutes from "./tenantsRoutes.js";
 import roomRentRoutes from "./roomRentRoutes.js";
+import updateRequestsRoutes from "./updateRequestsRoutes.js";
 
 const router = express.Router();
 
@@ -10,6 +11,7 @@ router.use("/admin", adminRoutes);
 router.use("/rooms", roomsRoutes);
 router.use("/tenants", tenantsRoutes);
 router.use("/room-rents", roomRentRoutes);
+router.use("/update-requests", updateRequestsRoutes);
 
 // Example route
 router.get("/status", (req, res) => {
