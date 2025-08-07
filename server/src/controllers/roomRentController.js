@@ -5,72 +5,83 @@ let billingMonth = addDays(startOfMonth(new Date()), 1);
 
 // For Auto run every month via cron job
 export const createRoomRentEntries = async (req = null, res = null) => {
-    
-    try {
-        // 1. Fetch all rooms which have tenants
-        const occupiedRooms = await prisma.rooms.findMany({
-            where: { occupied: true, tenant_id: {not: null} },
-            select: { id: true, tenant_id: true, admin_id: true, price: true },
+  let createdCount = 0;
+
+  try {
+    const occupiedRooms = await prisma.rooms.findMany({
+      where: { occupied: true, tenant_id: { not: null } },
+      select: { id: true, tenant_id: true, admin_id: true, price: true },
+    });
+
+    for (let room of occupiedRooms) {
+      const { id: roomId, tenant_id: tenantId, admin_id: adminId, price } = room;
+      const roomPrice = Number(price);
+
+      if (!roomId || !tenantId || !roomPrice) continue;
+
+      const alreadyExists = await prisma.room_rents.findFirst({
+        where: { room_id: roomId, tenant_id: tenantId, billing_month: billingMonth },
+      });
+      if (alreadyExists) continue;
+
+      const prevRoomRent = await prisma.room_rents.findFirst({
+        where: { room_id: roomId, tenant_id: tenantId },
+        select: { electricity_units: true, maintenance_cost: true },
+        orderBy: { created_at: "desc" },
+      });
+
+      let electricityUnits = prevRoomRent?.electricity_units || 0;
+      let maintenanceCost = prevRoomRent?.maintenance_cost;
+
+      if (maintenanceCost === null || maintenanceCost === undefined) {
+        const prevAnyRoomRent = await prisma.room_rents.findFirst({
+          where: { maintenance_cost: { not: null }, admin_id: adminId },
+          select: { maintenance_cost: true },
+          orderBy: { created_at: "desc" },
         });
+        maintenanceCost = prevAnyRoomRent?.maintenance_cost ?? 0;
+      }
 
-        // 2. Iterate each room and extract room_cost and room_id, tenant_id
-        for (let room of occupiedRooms) {
-            let roomId = room.id;
-            let tenantId = room.tenant_id;
-            let adminId = room.admin_id;
-            let roomPrice = Number(room.price);
+      await prisma.room_rents.create({
+        data: {
+          room_id: roomId,
+          tenant_id: tenantId,
+          admin_id: adminId,
+          billing_month: billingMonth,
+          room_cost: roomPrice,
+          electricity_cost: 0,
+          electricity_units: electricityUnits,
+          maintenance_cost: maintenanceCost,
+          paid_amount: 0,
+          payment_status: "unpaid",
+        },
+      });
 
-            let count = 0;
-            if (roomId === null || tenantId === null || roomPrice === null) {
-                continue;
-            }
-
-            // Check for already exists
-            const alreadyExists = await prisma.room_rents.findFirst({
-                where: { room_id: roomId, tenant_id: tenantId, billing_month: billingMonth }
-            });
-            if (alreadyExists) continue;
-
-            // Fetch previous month's rent by room id and tenant id
-            const prevRoomRent = await prisma.room_rents.findFirst({
-                where: { room_id: roomId, tenant_id: tenantId },
-                select: { electricity_units: true, maintenance_cost: true },
-                orderBy: { created_at: 'desc' },
-            });
-
-            // Fetch latest maintainance cost for else case
-            let electricityUnits = prevRoomRent?.electricity_cost || null;
-            let maintenanceCost = prevRoomRent?.maintenance_cost || null;
-            if (maintenanceCost === null) {
-                const prevAnyRoomRent = await prisma.room_rents.findFirst({
-                    where: { maintenance_cost: { not: null }, admin_id: adminId },
-                    select: { maintenance_cost: true },
-                    orderBy: { created_at: 'desc' },
-                });
-                maintenanceCost = prevAnyRoomRent?.maintenance_cost ?? 0;
-            }
-            
-            // end. Set values to db
-            await prisma.room_rents.create({
-                data: {
-                    room_id: roomId,
-                    tenant_id: tenantId,
-                    admin_id: adminId,
-                    billing_month: billingMonth,
-                    room_cost: roomPrice,
-                    electricity_cost: 0,
-                    electricity_units: electricityUnits || 0,
-                    maintenance_cost: maintenanceCost,
-                    paid_amount: 0,
-                    payment_status: 'unpaid',
-                }
-            });
-        }
-        console.log({ message: "Room rent entries created successfully" });
-    } catch (err) {
-        console.log({ error: 'Create Room Entries Error', message: err.message });
+      createdCount++;
     }
-}
+
+    const result = {
+      success: true,
+      message:
+        createdCount === 0
+          ? "No new rent entries were needed."
+          : `Successfully created ${createdCount} rent entr${createdCount > 1 ? "ies" : "y"}.`,
+    };
+
+    if (res) return res.status(200).json(result);
+    else return result;
+
+  } catch (err) {
+    const errorResult = {
+      success: false,
+      error: "Create Room Entries Error",
+      message: err.message || "Unknown error while creating rent entries",
+    };
+
+    if (res) return res.status(500).json(errorResult);
+    else return errorResult;
+  }
+};
 
 export const getRoomRents = async (req, res) => {
   const { id: admin_id } = req.admin;

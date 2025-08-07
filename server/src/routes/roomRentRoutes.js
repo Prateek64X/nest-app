@@ -11,6 +11,7 @@ import {
 const router = express.Router();
 
 // Here add routes
+router.post('/', verifyToken, createRoomRentEntries);
 router.get('/', verifyToken, getRoomRents);
 router.get("/tenant", verifyToken, getRoomRentByTenant);
 router.get('/upcoming', verifyToken, getUpcomingRoomRents);

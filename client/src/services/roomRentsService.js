@@ -1,5 +1,25 @@
 import api from "@/api/api";
 
+export async function createRoomRentEntries() {
+  try {
+    const res = await api.post("/room-rents");
+    console.log("service: ", res.data);
+
+    const { success, message } = res.data;
+
+    if (!success) {
+      throw new Error(message || "Unexpected server response");
+    }
+
+    return { success, message };
+  } catch (err) {
+    const message =
+      err.response?.data?.message || err.message || "Creating Room Rent Entries failed";
+    throw new Error(message);
+  }
+}
+
+
 export async function getUpcomingRoomRents() {
   try {
     const res = await api.get(`/room-rents/upcoming`);
