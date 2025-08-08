@@ -2,8 +2,11 @@ import { Outlet } from 'react-router-dom';
 import { FaBed, FaHome, FaUserCircle, FaUserFriends } from 'react-icons/fa';
 import Navbar from '../components/Navbar';
 import Header from '@/components/Header';
+import AdminUpdateRequestsPopover from '@/components/User/AdminUpdateRequestsList';
+import { useAuth } from '@/auth/AuthProvider';
 
 export default function MainLayout() {
+  const { user } = useAuth();
   const navList = [
     { label: 'Home', icon: <FaHome className="w-6 h-6" />, path: '/' },
     { label: 'Tenants', icon: <FaUserFriends />, path: '/tenants' },
@@ -15,6 +18,7 @@ export default function MainLayout() {
     <>
       <div className="px-4 pt-6 pb-24 bg-background">
         <Header />
+        <AdminUpdateRequestsPopover user={user} /> {/* Header Bell Popover */}
         <Outlet />
       </div>
       <Navbar navigationRoutes={navList} />

@@ -3,21 +3,14 @@ import DateView from '@/components/DateView';
 import RentCardList from '@/components/RoomRent/RentCardList';
 import { createRoomRentEntries, getRoomRents, getUpcomingRoomRents } from '@/services/roomRentsService';
 import { Button } from '@/components/ui/button';
-import { FaBell, FaExclamationTriangle, FaRegCalendarPlus } from 'react-icons/fa';
-import { useAuth } from '@/auth/AuthProvider';
-import { getAllUpdateRequests } from '@/services/updateRequestService';
+import { FaExclamationTriangle, FaRegCalendarPlus } from 'react-icons/fa';
 import { toast } from 'sonner';
-import AdminUpdateRequestsList from '@/components/User/AdminUpdateRequestsList';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertDialogLu } from '@/components/shared/AlertDialogLu';
 
 const Home = () => {
-    
-    const { user } = useAuth();
     const [roomRents, setRoomRents] = useState([]);
     const [upcomingRents, setUpcomingRents] = useState([]);
-    const [updateRequests, setUpdateRequests] = useState([]);
-    const [showUpdateRequest, setShowUpdateRequests] = useState(false);
     const [showCreateEntries, setShowCreateEntries] = useState(false);
     const [loading, setLoading] = useState(true);
 
@@ -35,19 +28,6 @@ const Home = () => {
         }
     }
 
-    async function fetchUpdateRequests() {
-        try {
-            const data = await getAllUpdateRequests(user?.id);
-            console.log(data)
-            setUpdateRequests(data);
-        } catch (err) {
-            const message =
-                err?.message || err?.error || "Failed to fetch update requests";
-            console.error("Request Fetch Error:", message);
-            toast.error(message);
-        }
-    }
-
     async function handleCreateRoomRentEntries() {
         try {
             const { message } = await createRoomRentEntries();
@@ -60,27 +40,10 @@ const Home = () => {
 
     useEffect(() => {
         fetchRoomRents();
-        fetchUpdateRequests();
     }, []);
 
     return (
         <div className='min-h-screen relative pt-12'>
-            {/* Alarm Button in top-right */}
-            <Button
-                variant="secondary"
-                className="absolute -top-10 right-4 z-30 flex items-center px-2 py-2 rounded-full"
-                onClick={() => {setShowUpdateRequests(true)}}
-            >
-                <FaBell className="w-5 h-5 text-muted-foreground" />
-
-                {/* Notification badge */}
-                {updateRequests?.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex items-center justify-center h-4 w-4 text-[11px] font-bold text-white bg-primary rounded-full">
-                    {updateRequests.length}
-                </span>
-                )}
-            </Button>
-
             <DateView className='absolute mt-2 left-2'/>
             <RentCardList roomRents={roomRents} upcomingRents={upcomingRents} refreshRoomRents={fetchRoomRents} loading={loading} className='mt-[15vh]'/>
         
@@ -93,7 +56,8 @@ const Home = () => {
                 </p>
 
                 <Button
-                    className="flex items-center gap-2 mx-6 py-2 bg-secondary text-secondary-foreground shadow-lg"
+                    variant='secondary'
+                    className="flex items-center gap-2 mx-6 py-2 shadow-lg"
                     onClick={() => {setShowCreateEntries(true)}}
                 >
                     <FaRegCalendarPlus className="w-4 h-4" />
@@ -115,13 +79,6 @@ const Home = () => {
                 showActionButton={true}
                 onConfirm={handleCreateRoomRentEntries || undefined}
             />
-
-            {showUpdateRequest && (
-                <AdminUpdateRequestsList
-                    requests={updateRequests}
-                    onDismiss={() => fetchUpdateRequests()}
-                />
-            )}
         </div>
     );
 };

@@ -84,6 +84,12 @@ export default function Profile() {
     }
   };
 
+  const handleLogout = (clearSession = false) => {
+    if (clearSession) {
+      localStorage.clear();
+    }
+    window.location.href = "/login";
+  }
 
   if (loading) return <div className="p-4">Loading...</div>;
 
@@ -172,10 +178,12 @@ export default function Profile() {
           <Separator />
 
           <div className="space-y-2 pt-2">
-            <h3 className="text-sm font-medium text-destructive">Danger Zone</h3>
-            <Button variant="destructive" onClick={() => setShowDeleteDialog(true)} className="w-full">
+            <Label for="delete-acc-btn" className="text-sm font-medium text-destructive">Danger Zone</Label>
+            <Button id="delete-acc-btn" variant="destructive" onClick={() => setShowDeleteDialog(true)} className="w-full">
               Delete Account
             </Button>
+            <Label for="logout-btn" className="text-secondary-foreground mt-2">Session</Label>
+            <Button id="logout-btn" className="w-full" onClick={() => handleLogout(true)}>Logout</Button>
           </div>
         </CardContent>
       </Card>

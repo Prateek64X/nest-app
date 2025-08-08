@@ -9,6 +9,7 @@ import DeleteAccountDialog from "@/components/Profile/DeleteAccountDialog";
 import { useAuth } from "@/auth/AuthProvider";
 import { toast } from "sonner";
 import { getTenantById, updateTenantProfile } from "@/services/tenantsService";
+import { Separator } from "@/components/ui/separator";
 
 export default function UserProfile() {
   const { user } = useAuth();
@@ -87,6 +88,13 @@ export default function UserProfile() {
       setSaving(false);
     }
   };
+
+  const handleLogout = (clearSession = false) => {
+    if (clearSession) {
+      localStorage.clear();
+    }
+    window.location.href = "/login";
+  }
 
   if (!tenant) {
     return <div className="text-center mt-10 text-muted-foreground">Loading profile...</div>;
@@ -167,6 +175,13 @@ export default function UserProfile() {
               </Button>
             </div>
           )}
+
+          <Separator />
+
+          <div className="space-y-2">
+            <Label for="logout-btn" className="text-secondary-foreground mt-2">Session</Label>
+            <Button id="logout-btn" className="w-full" onClick={() => handleLogout(true)}>Logout</Button>
+          </div>
         </CardContent>
       </Card>
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Accordion,
@@ -29,29 +29,12 @@ const getPaymentStatus = (totalCost, paidAmount) => {
 
 export default function RentCard({ existingRoomRent, refreshRoomRents }) {
   const [roomRent, setRoomRent] = useState({ ...existingRoomRent });
-  const [paymentStatus, setPaymentStatus] = useState(() =>
-    getPaymentStatus(existingRoomRent?.totalCost, existingRoomRent?.paidAmount)
-  );
-  const isPaid = paymentStatus === 'paid';
+  const isPaid = getPaymentStatus(roomRent?.totalCost, roomRent?.paidAmount) === 'paid';
   const [expanded, SetExpanded] = useState(false);
 
-  const updateRoomRentFields = (fields) => {
-    const updated = { ...roomRent, ...fields };
-    setRoomRent(updated);
-    handleFieldBlur(updated);
-  };
-
-  const handleFieldUpdate = (field, value) => {
-    setRoomRent((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleFieldBlur = async (fieldName, value) => {
-    let updatedData = { ...roomRent };
-
-    // Optional update if field and value are passed
-    if (fieldName && typeof value !== 'undefined') {
-      updatedData[fieldName] = value;
-    }
+  const saveRoomRent = async (fields) => {
+    const updatedData = { ...roomRent, ...fields };
+    setRoomRent(updatedData);
 
     try {
       await updateRoomRent({
@@ -63,11 +46,19 @@ export default function RentCard({ existingRoomRent, refreshRoomRents }) {
         maintenanceCost: updatedData.maintenanceCost,
         paidAmount: updatedData.paidAmount,
       });
+      refreshRoomRents();
     } catch (err) {
       console.error("Update failed:", err.message);
     }
   };
 
+  const handleFieldChange = (field, value) => {
+    setRoomRent((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFieldBlur = (field, value) => {
+    saveRoomRent({ [field]: value });
+  };
 
   return(
       <>
@@ -86,9 +77,9 @@ export default function RentCard({ existingRoomRent, refreshRoomRents }) {
                           <ExpandedRentContent
                             roomRent={roomRent}
                             isPaid={isPaid}
-                            onFieldUpdate={handleFieldUpdate}
+                            onFieldChange={handleFieldChange}
                             onFieldBlur={handleFieldBlur}
-                            updateRoomRentFields={updateRoomRentFields}
+                            saveRoomRent={saveRoomRent}
                             refreshRoomRents={refreshRoomRents}
                           />
                       </AccordionContent>
@@ -125,7 +116,7 @@ function CollapsedRentContent({roomRent, isPaid, expanded}) {
     );
 }
 
-function ExpandedRentContent({ roomRent, isPaid, onFieldUpdate, onFieldBlur, updateRoomRentFields, refreshRoomRents }) {
+function ExpandedRentContent({ roomRent, isPaid, onFieldChange, onFieldBlur, saveRoomRent }) {
   const [showElectricityModal, setShowElectricityModal] = useState(false);
   const [showMarkPaidModal, setShowMarkPaidModal] = useState(false);
 
@@ -144,7 +135,7 @@ function ExpandedRentContent({ roomRent, isPaid, onFieldUpdate, onFieldBlur, upd
             icon={<FaHome className="mr-1 text-muted-foreground" />}
             label="Room Rent"
             value={roomRent?.roomCost?.toString() || ''}
-            handleValueChange={(val) => onFieldUpdate("roomCost", parseFloat(val) || 0)}
+            handleValueChange={(val) => onFieldChange("roomCost", parseFloat(val) || 0)}
             handleBlur={(val) => onFieldBlur("roomCost", parseFloat(val) || 0)}
           />
 
@@ -161,7 +152,7 @@ function ExpandedRentContent({ roomRent, isPaid, onFieldUpdate, onFieldBlur, upd
             icon={<MdWaterDrop className="mr-1 text-muted-foreground" />}
             label="Maintainance Cost"
             value={roomRent?.maintenanceCost?.toString() || ''}
-            handleValueChange={(val) => onFieldUpdate("maintenanceCost", parseFloat(val) || 0)}
+            handleValueChange={(val) => onFieldChange("maintenanceCost", parseFloat(val) || 0)}
             handleBlur={(val) => onFieldBlur("maintenanceCost", parseFloat(val) || 0)}
           />
 
@@ -208,9 +199,8 @@ function ExpandedRentContent({ roomRent, isPaid, onFieldUpdate, onFieldBlur, upd
           electricityUnits={roomRent?.electricityUnits}
           onClose={() => setShowElectricityModal(false)}
           onChange={({ electricityCost, electricityUnits }) => {
-            updateRoomRentFields({ electricityCost, electricityUnits });
+            saveRoomRent({ electricityCost, electricityUnits });
             setShowElectricityModal(false);
-            refreshRoomRents();
           }}
         />
       )}
@@ -224,9 +214,8 @@ function ExpandedRentContent({ roomRent, isPaid, onFieldUpdate, onFieldBlur, upd
           existingpaidAmount={roomRent?.paidAmount}
           handlePaymentChange={(currentPayment) => {
             const newPaidAmount = (Number(roomRent?.paidAmount) || 0) + (Number(currentPayment) || 0);
-            updateRoomRentFields({ paidAmount: newPaidAmount });
+            saveRoomRent({ paidAmount: newPaidAmount });
             setShowMarkPaidModal(false);
-            refreshRoomRents();
           }}
         />
       )}
@@ -271,7 +260,7 @@ export function LabelRow({
             type="text"
             value={value}
             onChange={(e) => handleValueChange?.(e.target.value)}
-            onBlur={handleBlur}
+            onBlur={(e) => handleBlur?.(e.target.value)}
             className={"bg-transparent text-sm text-right w-20 truncate border-0 border-b border-input " +
               (handleValueChange
                 ? "focus:outline-none focus:border-primary cursor-text"
