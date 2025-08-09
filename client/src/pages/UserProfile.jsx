@@ -61,7 +61,6 @@ export default function UserProfile() {
         full_name: form.full_name,
         phone: form.phone,
       };
-      console.log(form); // test
 
       if (form.password && form.password !== form.old_password) {
         payload.password = form.password;
