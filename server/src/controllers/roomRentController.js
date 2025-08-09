@@ -1,7 +1,8 @@
+import { addDays, startOfMonth } from 'date-fns';
 import prisma from '../db/prisma.js';
-import { addDays, startOfMonth, endOfMonth } from 'date-fns';
+import { getBillingMonthStart, getISTMonthEndDate, getISTMonthStartDate, getMonthEndDateString, getMonthStartDateString } from '../utils/DateHelper.js';
 
-let billingMonth = addDays(startOfMonth(new Date()), 1);
+let billingMonth = getBillingMonthStart(new Date());
 
 // For Auto run every month via cron job
 export const createRoomRentEntries = async (req = null, res = null) => {
@@ -97,7 +98,6 @@ export const getRoomRents = async (req, res) => {
     if (roomIds.length === 0) {
       return res.status(200).json({ success: true, data: [] });
     }
-
     // 2. Fetch all room rents for this month along with related room & tenant info
     const rents = await prisma.room_rents.findMany({
       where: {
@@ -179,17 +179,16 @@ export const getUpcomingRoomRents = async (req, res) => {
   const { id: admin_id } = req.admin;
 
   try {
-    const now = new Date();
-    const monthStart = startOfMonth(now);
-    const monthEnd = endOfMonth(now);
+    const monthStart = getISTMonthStartDate();
+    const monthEnd = getISTMonthEndDate();
 
     // 1. Get tenants who moved in this month and have no rent entry yet
     const tenants = await prisma.tenants.findMany({
       where: {
         admin_id,
         move_in_date: {
-          gte: monthStart,
-          lte: monthEnd,
+          gte: monthStart.toISOString(),
+          lte: monthEnd.toISOString(),
         },
         room_rents: {
           none: {},
