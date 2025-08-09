@@ -7,6 +7,7 @@ import { FaExclamationTriangle, FaRegCalendarPlus } from 'react-icons/fa';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertDialogLu } from '@/components/shared/AlertDialogLu';
+import { Separator } from '@/components/ui/separator';
 
 const Home = () => {
     const [roomRents, setRoomRents] = useState([]);
@@ -48,7 +49,8 @@ const Home = () => {
             <RentCardList roomRents={roomRents} upcomingRents={upcomingRents} refreshRoomRents={fetchRoomRents} loading={loading} className='mt-[15vh]'/>
         
             {/* Create rent entries Button */}
-            <h2 className='text-lg mt-2 ml-2 font-semibold text-primary tracking-tight'>Administrator</h2>
+            <Separator className="my-4" />
+            <h2 className='text-lg ml-2 font-semibold text-primary tracking-tight'>Administrator</h2>
             <Card className="m-2">
                 <CardContent className="px-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <p className="text-sm text-muted-foreground max-w-sm">

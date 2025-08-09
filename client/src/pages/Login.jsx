@@ -66,7 +66,7 @@ export default function Login() {
 
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-start bg-muted px-4 py-10 space-y-6">
+    <div className="min-h-dvh flex flex-col items-center justify-start lg:justify-center bg-muted px-4 py-10 space-y-6">
       {/* Logo + App Name */}
       <NestLogo />
 

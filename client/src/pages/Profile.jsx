@@ -11,6 +11,7 @@ import PhoneInputLu from "@/components/shared/PhoneInputLu";
 import ChangePasswordModal from "@/components/Profile/ChangePasswordModal";
 import { FaEdit } from "react-icons/fa";
 import DeleteAccountDialog from "@/components/Profile/DeleteAccountDialog";
+import LoaderLu from "@/components/shared/LoaderLu";
 
 export default function Profile() {
   const [admin, setAdmin] = useState(null);
@@ -91,10 +92,10 @@ export default function Profile() {
     window.location.href = "/login";
   }
 
-  if (loading) return <div className="p-4">Loading...</div>;
+  if (loading) return <LoaderLu />;
 
   return (
-    <div className="min-h-screen pt-12">
+    <div className="min-h-screen mt-[15vh] lg:justify-center">
       <Card className="max-w-md mx-auto">
         <CardHeader>
           <h2 className="text-lg font-semibold text-primary tracking-tight">My Profile</h2>

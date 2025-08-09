@@ -10,7 +10,7 @@ export default function Navbar({ navigationRoutes = [] }) {
 
     return (
         <div className="fixed bottom-2 left-0 right-0 z-20 px-4">
-            <div className="mx-auto w-full max-w-sm flex justify-between items-center bg-background shadow-md rounded-xl p-1.5 gap-2">
+            <div className="mx-auto w-full max-w-sm flex justify-between items-center bg-background/20 backdrop-blur-sm shadow-md rounded-xl p-1.5 gap-2">
                 {navigationRoutes.map((nav, index) => {
                     const isSelected = location.pathname === nav.path;
 

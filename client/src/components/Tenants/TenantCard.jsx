@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Accordion,
     AccordionContent,
@@ -12,16 +12,36 @@ import { FaIdCard, FaPassport, FaFileAlt, FaFileSignature, FaFileContract, FaUse
 import { AlertDialogLu } from '../shared/AlertDialogLu';
 import { MdDelete } from 'react-icons/md';
 import { deleteTenant } from '@/services/tenantsService';
+import DocumentViewer from '../shared/DocumentViewer';
 
-export default function TenantCard({ tenant, rooms, refreshTenants }) {
-    const [expanded, setExpanded] = useState(false);
+export default function TenantCard({ tenant, rooms, refreshTenants, expanded, onExpand }) {
+    const [internalExpanded, setInternalExpanded] = useState(false);
+
+    const isExpanded = expanded ?? internalExpanded;
+
+    useEffect(() => {
+        if (expanded !== undefined) {
+            setInternalExpanded(expanded);
+        }
+    }, [expanded]);
+
+    const handleChange = (val) => {
+        const isOpen = val === 'tenant-card';
+        if (onExpand) onExpand(isOpen);
+        if (expanded === undefined) setInternalExpanded(isOpen);
+    };
 
     return (
         <Card className="p-4 relative">
-            <Accordion type="single" collapsible value={expanded} onValueChange={setExpanded}>
+            <Accordion
+                type="single"
+                collapsible
+                value={isExpanded ? 'tenant-card' : ''}
+                onValueChange={handleChange}
+            >
                 <AccordionItem value="tenant-card">
                     <AccordionTrigger className="py-0 text-left">
-                        <CollapsedTenant tenant={tenant} rooms={rooms} expanded={expanded} />
+                        <CollapsedTenant tenant={tenant} rooms={rooms} expanded={isExpanded} />
                     </AccordionTrigger>
 
                     <AccordionContent className="pt-2 pb-0">
@@ -84,6 +104,7 @@ function ExpandedTenant({ tenant, rooms, refreshTenants }) {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+    const [viewerUrl, setViewerUrl] = useState(null);
 
     async function handleDeleteTenant() {
         if (tenant?.id !== undefined) {
@@ -99,7 +120,7 @@ function ExpandedTenant({ tenant, rooms, refreshTenants }) {
         <div className="flex flex-col">
             {/* Right: Full-width document button grid */}
             <span className="text-xs text-muted-foreground mb-2">Documents</span>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full">
+            <div className="grid grid-cols-2 gap-2 w-full">
                 {documentsLabelList.map(doc => {
                     const isUploaded = documents[doc.key];
 
@@ -112,7 +133,7 @@ function ExpandedTenant({ tenant, rooms, refreshTenants }) {
                             }`}
                             disabled={!isUploaded}
                             onClick={() => {
-                                if (isUploaded) window.open(isUploaded, '_blank');
+                                if (isUploaded) setViewerUrl(isUploaded);
                             }}
                         >
                             {doc.icon}
@@ -121,6 +142,15 @@ function ExpandedTenant({ tenant, rooms, refreshTenants }) {
                     );
                 })}
             </div>
+
+            {/* Viewer Modal */}
+            {viewerUrl && (
+                <DocumentViewer
+                url={viewerUrl}
+                open={!!viewerUrl}
+                onClose={() => setViewerUrl(null)}
+                />
+            )}
 
             {/* Filler to align "Edit Member" properly */}
             <div></div>

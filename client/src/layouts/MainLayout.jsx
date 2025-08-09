@@ -16,11 +16,16 @@ export default function MainLayout() {
 
   return (
     <>
-      <div className="px-4 pt-6 pb-24 bg-background">
+      <div className="px-4 pt-6 pb-24 bg-background min-h-dvh flex flex-col">
         <Header />
-        <AdminUpdateRequestsPopover user={user} /> {/* Header Bell Popover */}
-        <Outlet />
+        <AdminUpdateRequestsPopover user={user} />
+
+        {/* Main content container */}
+        <div className="flex-1 w-full max-w-6xl mx-auto">
+          <Outlet />
+        </div>
       </div>
+
       <Navbar navigationRoutes={navList} />
     </>
   );

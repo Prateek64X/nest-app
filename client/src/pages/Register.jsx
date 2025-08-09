@@ -70,7 +70,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-start bg-muted px-4 py-auto space-y-auto">
+    <div className="min-h-dvh flex flex-col items-center justify-start lg:justify-center bg-muted px-4 py-auto space-y-auto">
       {/* Logo + App Name */}
       <NestLogo />
 

@@ -13,7 +13,10 @@ export default function UserLayout() {
     <>
       <div className="px-4 pt-6 pb-24 bg-background">
         <Header />
-        <Outlet />
+        {/* Main content container */}
+        <div className="flex-1 w-full max-w-6xl mx-auto">
+          <Outlet />
+        </div>
       </div>
       <Navbar navigationRoutes={navList} />
     </>

@@ -27,10 +27,22 @@ const getPaymentStatus = (totalCost, paidAmount) => {
   return 'unknown';
 };
 
-export default function RentCard({ existingRoomRent, refreshRoomRents }) {
+export default function RentCard({
+  existingRoomRent,
+  refreshRoomRents,
+  forceExpanded,
+  onExpandChange,
+}) {
   const [roomRent, setRoomRent] = useState({ ...existingRoomRent });
   const isPaid = getPaymentStatus(roomRent?.totalCost, roomRent?.paidAmount) === 'paid';
-  const [expanded, SetExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  // Sync with parent if forceExpanded changes (desktop only)
+  useEffect(() => {
+    if (typeof forceExpanded === 'boolean') {
+      setExpanded(forceExpanded);
+    }
+  }, [forceExpanded]);
 
   const saveRoomRent = async (fields) => {
     const updatedData = { ...roomRent, ...fields };
@@ -48,7 +60,7 @@ export default function RentCard({ existingRoomRent, refreshRoomRents }) {
       });
       refreshRoomRents();
     } catch (err) {
-      console.error("Update failed:", err.message);
+      console.error('Update failed:', err.message);
     }
   };
 
@@ -60,33 +72,40 @@ export default function RentCard({ existingRoomRent, refreshRoomRents }) {
     saveRoomRent({ [field]: value });
   };
 
-  return(
-      <>
-          <Card className="p-4 relative">
-              <Accordion type="single" collapsible value={expanded} onValueChange={SetExpanded}>
-                  <AccordionItem value="rentcard-1">
-                      <AccordionTrigger className="py-0 text-left">
-                          <CollapsedRentContent 
-                            roomRent={roomRent} 
-                            isPaid={isPaid} 
-                            expanded={expanded} 
-                          />
-                      </AccordionTrigger>
+  return (
+    <Card className="p-4 relative">
+      <Accordion
+        type="single"
+        collapsible
+        value={expanded ? 'rentcard-1' : ''}
+        onValueChange={(val) => {
+          const newExpanded = Boolean(val);
+          setExpanded(newExpanded);
+          onExpandChange?.(newExpanded); // Notify parent
+        }}
+      >
+        <AccordionItem value="rentcard-1">
+          <AccordionTrigger className="py-0 text-left">
+            <CollapsedRentContent
+              roomRent={roomRent}
+              isPaid={isPaid}
+              expanded={expanded}
+            />
+          </AccordionTrigger>
 
-                      <AccordionContent className="pt-0 pb-2">
-                          <ExpandedRentContent
-                            roomRent={roomRent}
-                            isPaid={isPaid}
-                            onFieldChange={handleFieldChange}
-                            onFieldBlur={handleFieldBlur}
-                            saveRoomRent={saveRoomRent}
-                            refreshRoomRents={refreshRoomRents}
-                          />
-                      </AccordionContent>
-                  </AccordionItem>
-              </Accordion>
-          </Card>
-      </>
+          <AccordionContent className="pt-0 pb-2">
+            <ExpandedRentContent
+              roomRent={roomRent}
+              isPaid={isPaid}
+              onFieldChange={handleFieldChange}
+              onFieldBlur={handleFieldBlur}
+              saveRoomRent={saveRoomRent}
+              refreshRoomRents={refreshRoomRents}
+            />
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </Card>
   );
 }
 

@@ -101,7 +101,7 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen mt-[20%]">
+    <div className="min-h-screen mt-[15vh] lg:justify-center">
       <Card className="max-w-md mx-auto">
         <CardHeader>
           <h2 className="text-lg font-semibold text-primary tracking-tight">My Profile</h2>
