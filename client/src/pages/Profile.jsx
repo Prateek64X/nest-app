@@ -95,7 +95,7 @@ export default function Profile() {
   if (loading) return <LoaderLu />;
 
   return (
-    <div className="min-h-screen mt-[15vh] lg:justify-center">
+    <div className="mt-[5vh] relative px-4">
       <Card className="max-w-md mx-auto">
         <CardHeader>
           <h2 className="text-lg font-semibold text-primary tracking-tight">My Profile</h2>
@@ -189,6 +189,15 @@ export default function Profile() {
         </CardContent>
       </Card>
 
+      <a
+        href="https://prateek64x.github.io/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block relative top-4 w-full text-center text-secondary-foreground hover:underline"
+      >
+        Created by Prateek Panwar
+      </a>
+      
       {showChangePasswordModal && (
         <ChangePasswordModal
           onClose={() => setShowChangePasswordModal(false)}

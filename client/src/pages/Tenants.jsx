@@ -46,7 +46,7 @@ export default function Tenants() {
     
 
     return (
-        <div className="min-h-screen relative pt-12">
+        <div className="relative pt-12">
             <TenantsCardList tenants={tenants} rooms={rooms} loading={loading} error={error} refreshTenants={fetchTenants} />
 
             {/* Floating Add Button */}

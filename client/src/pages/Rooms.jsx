@@ -39,7 +39,7 @@ export default function Rooms() {
   }, []);
 
   return (
-    <div className="min-h-screen relative  pt-12 pb-20">
+    <div className="relative pt-12 pb-20">
       <RoomCardList rooms={rooms} tenants={tenants} loading={loading} error={error} refreshRooms={fetchRooms} />
 
       <Button

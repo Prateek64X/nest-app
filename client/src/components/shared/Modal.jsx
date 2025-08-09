@@ -6,7 +6,7 @@ export default function Modal({children, onClose}) {
             className='fixed inset-0 z-40 bg-black/50 flex items-center justify-center'
             onClick={onClose}
         >
-            <div className='bg-card/90 backdrop-blur-sm rounded-lg p-6' onClick={(e) => e.stopPropagation()}>
+            <div className='bg-card rounded-lg p-6' onClick={(e) => e.stopPropagation()}>
                 {children}
             </div>
         </div>
