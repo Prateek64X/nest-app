@@ -1,8 +1,9 @@
 import api from "@/api/api";
+import { getRoute } from '@/lib/utils';
 
 export async function createRoomRentEntries() {
   try {
-    const res = await api.post("/room-rents");
+    const res = await api.post(getRoute("room-rents", ""));
     console.log("service: ", res.data);
 
     const { success, message } = res.data;
@@ -22,7 +23,7 @@ export async function createRoomRentEntries() {
 
 export async function getUpcomingRoomRents() {
   try {
-    const res = await api.get(`/room-rents/upcoming`);
+    const res = await api.get(getRoute("room-rents", "upcoming"));
     return res.data?.data;
   } catch (err) {
     const message = err.response?.data?.error || "Fetching upcoming room rents failed";
@@ -32,7 +33,7 @@ export async function getUpcomingRoomRents() {
 
 export async function getRoomRents() {
   try {
-    const res = await api.get('/room-rents');
+    const res = await api.get(getRoute("room-rents",""));
 
     if (!res.data?.success) {
       throw new Error(res.data?.message || "Unexpected server response");
@@ -54,7 +55,7 @@ export async function getRoomRents() {
 // For one tenant logged in as user
 export async function getRoomRentByTenant() {
   try {
-    const res = await api.get('/room-rents/tenant');
+    const res = await api.get(getRoute("room-rents", "tenant"));
 
     if (!res.data?.success) {
       throw new Error(res.data?.message || "Unexpected server response");
@@ -78,7 +79,7 @@ export async function getRoomRentByTenant() {
 
 export async function updateRoomRent({ id, roomId, roomCost, electricityCost, electricityUnits, maintenanceCost, paidAmount }) {
   try {
-    const res = await api.patch(`/room-rents/${id}`, {
+    const res = await api.patch(getRoute("room-rents", `${id}`), {
       roomId,
       roomCost,
       electricityCost,

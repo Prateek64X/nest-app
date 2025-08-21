@@ -1,10 +1,11 @@
 // Using fetch
 
 import api from "@/api/api";
+import { getRoute } from '@/lib/utils';
 
 export async function registerAdmin({ name, phone, email, password, home_name }) {
     try {
-        const res = await api.post("/admin/register", {
+        const res = await api.post(getRoute("admin", "register"), {
             name, phone, email, password, home_name
         });
 
@@ -17,7 +18,7 @@ export async function registerAdmin({ name, phone, email, password, home_name })
 
 export async function loginAdmin({ phone, password }) {
     try {
-        const res = await api.post("/admin/login", {
+        const res = await api.post(getRoute("admin", "login"), {
             phone, password
         });
         return res.data;
@@ -30,7 +31,7 @@ export async function loginAdmin({ phone, password }) {
 // For profiles page
 export async function getAdminProfile() {
     try {
-        const res = await api.get("/admin/profile");
+        const res = await api.get(getRoute("admin", "profile"));
         return res.data;
     } catch (err) {
         const message = err.response?.data?.error || "Failed to fetch admin profile";
@@ -40,7 +41,7 @@ export async function getAdminProfile() {
 
 export async function verifyAdminPassword(old_password) {
   try {
-    const res = await api.post("/admin/verify-password", { old_password });
+    const res = await api.post(getRoute("admin", "verify-password"), { old_password });
     return res.success;
   } catch (err) {
     const message = err.response?.data?.error || "Password verification failed";
@@ -50,7 +51,7 @@ export async function verifyAdminPassword(old_password) {
 
 export async function updateAdminProfile({ full_name, phone_number, email, home_name, old_password, password }) {
   try {
-    const res = await api.put("/admin/profile", {
+    const res = await api.put(getRoute("admin", "profile"), {
       full_name,
       phone_number,
       email,
@@ -68,7 +69,7 @@ export async function updateAdminProfile({ full_name, phone_number, email, home_
 // Deletes all data in tables which is related to admin_id
 export async function deleteAdminAccount() {
     try {
-        const res = await api.delete("/admin/delete");
+        const res = await api.delete(getRoute("admin", "delete"));
         return res.data;
     } catch (err) {
         const message = err.response?.data?.error || "Account deletion failed";

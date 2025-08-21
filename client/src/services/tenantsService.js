@@ -1,4 +1,5 @@
 import api from "@/api/api";
+import { getRoute } from "@/lib/utils";
 
 // Frontend -> Backend key map
 export const TENANT_DOC_KEY_MAP = {
@@ -16,7 +17,7 @@ export const TENANT_DOC_KEY_MAP_REVERSE = Object.fromEntries(
 
 export async function createTenant(formData) {
   try {
-    const res = await api.post('/tenants/create', formData, {
+    const res = await api.post(getRoute("tenants", "create"), formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -31,7 +32,7 @@ export async function createTenant(formData) {
 
 export async function getTenants() {
     try {
-        const res = await api.get('/tenants');
+        const res = await api.get(getRoute("tenants", ""));
         return res.data;
     } catch (err) {
         const message = err.response?.data?.error || "Tenant fetching failed";
@@ -42,7 +43,7 @@ export async function getTenants() {
 // Get by Id
 export async function getTenantById(tenant_id) {
     try {
-        const res = await api.get(`/tenants/${tenant_id}`);
+        const res = await api.get(getRoute("tenants", `${tenant_id}`));
         return res.data.tenant;
     } catch (err) {
         const message = err.response?.data?.error || "Tenant fetching failed";
@@ -53,7 +54,7 @@ export async function getTenantById(tenant_id) {
 // Get multiple tenants by an array of IDs
 export async function getTenantsByIds(tenant_ids) {
   try {
-    const res = await api.post("/tenants/by-ids", tenant_ids); // raw array
+    const res = await api.post(getRoute("tenants", `by-ids`), tenant_ids); // raw array
     return res.data;
   } catch (err) {
     const message = err.response?.data?.error || "Tenant fetching failed";
@@ -69,7 +70,7 @@ export async function updateTenant(formData) {
       throw new Error("Missing tenant ID for update");
     }
 
-    const res = await api.patch(`/tenants/${tenantId}`, formData, {
+    const res = await api.patch(getRoute("tenants", `${tenantId}`), formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -91,7 +92,7 @@ export async function updateTenantProfile(data) {
       throw new Error("Missing tenant ID for update");
     }
 
-    const res = await api.patch(`/tenants/profile/${id}`, data);
+    const res = await api.patch(getRoute("tenants", `profile/${id}`), data);
 
     return res.data;
   } catch (err) {
@@ -104,7 +105,7 @@ export async function updateTenantProfile(data) {
 // Delete by Id
 export async function deleteTenant(tenant_id) {
     try {
-        const res = await api.delete(`/tenants/${tenant_id}`);
+        const res = await api.delete(getRoute("tenants", `${tenant_id}`));
         return res.data;
     } catch (err) {
         const message = err.response?.data?.error || "Tenant fetching failed";

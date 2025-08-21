@@ -1,8 +1,9 @@
 import api from "@/api/api";
+import { getRoute } from "@/lib/utils";
 
 export async function createRoom({ name, floor, price }) {
     try {
-        const res = await api.post('/rooms/create', {
+        const res = await api.post(getRoute("rooms", "create"), {
             name, floor, price
         });
 
@@ -15,7 +16,7 @@ export async function createRoom({ name, floor, price }) {
 
 export async function getRooms() {
     try {
-        const res = await api.get('/rooms');
+        const res = await api.get(getRoute("rooms", ""));
         return res.data.rooms || [];
     } catch (err) {
         const message = err.response?.data?.error || "Room fetching failed";
@@ -25,7 +26,7 @@ export async function getRooms() {
 
 export async function getRoomById({ id }) {
     try {
-        const res = await api.get(`/rooms/${id}`);
+        const res = await api.get(getRoute("rooms",`${id}`));
         return res.data;
     } catch (err) {
         const message = err.response?.data?.error || "Room fetching failed";
@@ -35,7 +36,7 @@ export async function getRoomById({ id }) {
 
 export async function getRoomsByTenantId(tenantId) {
   try {
-    const res = await api.get(`/rooms/by-tenant/${tenantId}`);
+    const res = await api.get(getRoute("rooms", `by-tenant/${tenantId}`));
     return res.data.rooms || [];
   } catch (err) {
     console.warn(`No room found for tenant ID ${tenantId}:`, err.response?.data?.error || err.message);
@@ -47,7 +48,7 @@ export async function getRoomsByTenantId(tenantId) {
 // Get all available (unoccupied) rooms for current admin
 export async function getAvailableRooms() {
   try {
-    const res = await api.get('/rooms/available'); // Your route should filter only unoccupied
+    const res = await api.get(getRoute("rooms", "available")); // Your route should filter only unoccupied
     return res.data.rooms;
   } catch (err) {
     const message = err.response?.data?.error || "Failed to fetch available rooms";
@@ -57,7 +58,7 @@ export async function getAvailableRooms() {
 
 export async function updateRoom({ id, name, floor, price }) {
     try {
-        const res = await api.patch(`/rooms/${id}`, {
+        const res = await api.patch(getRoute("rooms",`${id}`), {
             name, floor, price
         });
 
@@ -70,7 +71,7 @@ export async function updateRoom({ id, name, floor, price }) {
 
 export async function deleteRoom(id) {
     try {
-        const res = await api.delete(`/rooms/${id}`);
+        const res = await api.delete(getRoute("rooms",`${id}`));
 
         return res.data;
     } catch (err) {
