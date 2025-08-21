@@ -8,8 +8,8 @@ import {
   updateTenant,
   updateTenantProfile,
   deleteTenant,
-} from '../../controllers/tenantsController.js';
-import { verifyToken } from '../../middleware/auth.js';
+} from '../../../server/src/controllers/tenantsController.js';
+import { verifyToken } from '../../../server/src/middleware/auth.js';
 
 // Multer memory storage for file uploads
 const upload = multer({ storage: multer.memoryStorage() });

@@ -4,8 +4,8 @@ import {
   updateUpdateRequest,
   getAllUpdateRequests,
   getUpdateRequestTenant
-} from '../../controllers/updateRequestsController.js';
-import { verifyToken } from '../../middleware/auth.js';
+} from '../../../server/src/controllers/updateRequestsController.js';
+import { verifyToken } from '../../../server/src/middleware/auth.js';
 
 export default async function handler(req, res) {
   try {

@@ -7,8 +7,8 @@ import {
   updateRoomById,
   getRoomsByTenantId,
   deleteRoomById
-} from '../../controllers/roomsController.js';
-import { verifyToken } from '../../middleware/auth.js';
+} from '../../../server/src/controllers/roomsController.js';
+import { verifyToken } from '../../../server/src/middleware/auth.js';
 
 export default async function handler(req, res) {
   try {
