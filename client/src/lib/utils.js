@@ -14,7 +14,7 @@ const USE_SERVERLESS = import.meta.env.VITE_USE_SERVERLESS === "true"; // env va
 
 export function getRoute(controller, method) {
   if (USE_SERVERLESS) {
-    return `/api/${controller}?action=${method}`;
+    return `${controller}?action=${method}`;
   } else {
     return `/${controller}/${method}`;
   }
