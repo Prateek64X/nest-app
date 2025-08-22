@@ -5,8 +5,8 @@ import {
   getRoomRents,
   getRoomRentByTenant,
   updateRoomRent
-} from '../../../server/src/controllers/roomRentController.js';
-import { verifyToken } from '../../../server/src/middleware/auth.js';
+} from '@/serverless/controllers/roomRentController.js';
+import { verifyToken } from '@/serverless/middleware/auth';
 
 export default async function handler(req, res) {
   try {
