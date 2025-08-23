@@ -1,6 +1,6 @@
 // serverless/api/admin.ts
-import { registerAdmin, loginAdmin, getAdminProfile, checkPassword, updateAdminProfile, deleteAdminAccount } from '../../server/src/controllers/adminController';
-import { verifyToken } from '@/serverless/middleware/auth';
+import { registerAdmin, loginAdmin, getAdminProfile, checkPassword, updateAdminProfile, deleteAdminAccount } from '../src/serverless/controllers/adminController.js';
+import { verifyToken } from '../src/serverless/middleware/auth.js';
 
 export default async function handler(req, res) {
   try {

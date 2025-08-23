@@ -60,7 +60,7 @@ export default function Login() {
       }
 
     } catch (err) {
-      toast.error(`Error: ${err.message}`);
+      console.error("Error: ", err.message);
     }
   };
 

@@ -7,8 +7,8 @@ import {
   updateRoomById,
   getRoomsByTenantId,
   deleteRoomById
-} from '@/serverless/controllers/roomsController.js';
-import { verifyToken } from '@/serverless/middleware/auth';
+} from '../src/serverless/controllers/roomsController.js';
+import { verifyToken } from '../src/serverless/middleware/auth.js';
 
 export default async function handler(req, res) {
   try {
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
 
       // GET: fetch rooms
       case 'GET':
-        if (query.action === 'all') {
+        if (!query.action || query.action === 'all') {
           await verifyToken(req, res, async () => {
             await getRooms(req, res);
           });
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
           await verifyToken(req, res, async () => {
             await getAvailableRooms(req, res);
           });
-        } else if (query.action === 'byTenant' && query.tenantId) {
+        } else if (query.action === 'byTenant' && (query.tenantId || query.id)) {
           req.params = { id: query.tenantId };
           await verifyToken(req, res, async () => {
             await getRoomsByTenantId(req, res);

@@ -4,8 +4,8 @@ import {
   updateUpdateRequest,
   getAllUpdateRequests,
   getUpdateRequestTenant
-} from '@/serverless/controllers/updateRequestsController';
-import { verifyToken } from '@/serverless/middleware/auth';
+} from '../src/serverless/controllers/updateRequestsController.js';
+import { verifyToken } from '../src/serverless/middleware/auth.js';
 
 export default async function handler(req, res) {
   try {

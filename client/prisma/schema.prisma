@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model admins {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  full_name       String
+  phone_number    String            @unique(map: "unique_phone")
+  email           String?
+  password        String
+  home_name       String
+  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  room_rents      room_rents[]
+  rooms           rooms[]
+  tenants         tenants[]
+  update_requests update_requests[]
+}
+
+model room_rents {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  room_id           Int?
+  tenant_id         String?   @db.Uuid
+  admin_id          String?   @db.Uuid
+  billing_month     DateTime  @db.Date
+  room_cost         Decimal?  @db.Decimal(10, 2)
+  electricity_cost  Decimal?  @db.Decimal(10, 2)
+  electricity_units Decimal?  @db.Decimal(10, 2)
+  maintenance_cost  Decimal?  @db.Decimal(10, 2)
+  total_cost        Decimal?  @default(dbgenerated("((COALESCE(room_cost, (0)::numeric) + COALESCE(electricity_cost, (0)::numeric)) + COALESCE(maintenance_cost, (0)::numeric))")) @db.Decimal(10, 2)
+  paid_amount       Decimal?  @default(0) @db.Decimal(10, 2)
+  payment_status    String?   @default("unpaid")
+  updated_at        DateTime? @default(now()) @db.Timestamptz(6)
+  created_at        DateTime? @default(now()) @db.Timestamptz(6)
+  rooms             rooms?    @relation(fields: [room_id], references: [id], onUpdate: NoAction)
+  tenants           tenants?  @relation(fields: [tenant_id], references: [id], onUpdate: NoAction)
+  admins            admins?   @relation(fields: [admin_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "tenants_admin_id_fkey")
+}
+
+model rooms {
+  id         Int          @id @default(autoincrement())
+  admin_id   String       @db.Uuid
+  tenant_id  String?      @db.Uuid
+  name       String
+  floor      String
+  price      Decimal      @db.Decimal(10, 2)
+  occupied   Boolean?     @default(false)
+  created_at DateTime     @default(now()) @db.Timestamptz(6)
+  room_rents room_rents[]
+  admins     admins       @relation(fields: [admin_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tenants    tenants?     @relation(fields: [tenant_id], references: [id], onUpdate: NoAction)
+}
+
+model tenants {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  admin_id        String            @db.Uuid
+  full_name       String
+  phone           String            @unique
+  password        String?
+  move_in_date    DateTime?         @db.Date
+  move_out_date   DateTime?         @db.Date
+  created_at      DateTime?         @default(now()) @db.Timestamp(6)
+  photo_url       String?
+  doc_aadhar      String?
+  doc_pan         String?
+  doc_voter       String?
+  doc_license     String?
+  doc_police      String?
+  doc_agreement   String?
+  room_rents      room_rents[]
+  rooms           rooms[]
+  admins          admins            @relation(fields: [admin_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  update_requests update_requests[]
+}
+
+model update_requests {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenant_id  String    @db.Uuid
+  admin_id   String    @db.Uuid
+  message    String
+  status     String?   @default("pending")
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  admins     admins    @relation(fields: [admin_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_update_admin")
+  tenants    tenants   @relation(fields: [tenant_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_update_tenant")
+}

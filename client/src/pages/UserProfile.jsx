@@ -178,7 +178,7 @@ export default function UserProfile() {
           <Separator />
 
           <div className="space-y-2">
-            <Label for="logout-btn" className="text-secondary-foreground mt-2">Session</Label>
+            <Label htmlFor="logout-btn" className="text-secondary-foreground mt-2">Session</Label>
             <Button id="logout-btn" className="w-full" onClick={() => handleLogout(true)}>Logout</Button>
           </div>
         </CardContent>

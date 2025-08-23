@@ -5,8 +5,8 @@ import {
   getRoomRents,
   getRoomRentByTenant,
   updateRoomRent
-} from '@/serverless/controllers/roomRentController.js';
-import { verifyToken } from '@/serverless/middleware/auth';
+} from '../src/serverless/controllers/roomRentController.js';
+import { verifyToken } from '../src/serverless/middleware/auth.js';
 
 export default async function handler(req, res) {
   try {
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
         break;
 
       case 'GET':
-        if (query.action === 'all') {
+        if (!query.action || query.action === 'all') {
           await verifyToken(req, res, async () => {
             await getRoomRents(req, res);
           });

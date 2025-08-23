@@ -179,11 +179,11 @@ export default function Profile() {
           <Separator />
 
           <div className="space-y-2 pt-2">
-            <Label for="delete-acc-btn" className="text-sm font-medium text-destructive">Danger Zone</Label>
+            <Label htmlFor="delete-acc-btn" className="text-sm font-medium text-destructive">Danger Zone</Label>
             <Button id="delete-acc-btn" variant="destructive" onClick={() => setShowDeleteDialog(true)} className="w-full">
               Delete Account
             </Button>
-            <Label for="logout-btn" className="text-secondary-foreground mt-2">Session</Label>
+            <Label htmlFor="logout-btn" className="text-secondary-foreground mt-2">Session</Label>
             <Button id="logout-btn" className="w-full" onClick={() => handleLogout(true)}>Logout</Button>
           </div>
         </CardContent>

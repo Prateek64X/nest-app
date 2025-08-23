@@ -12,10 +12,17 @@ export function truncateNumber(number, digits=2) {
 // Get route for easy switch server / serverless setup
 const USE_SERVERLESS = import.meta.env.VITE_USE_SERVERLESS === "true"; // env var
 
-export function getRoute(controller, method) {
+export function getRoute(controller, method = "", params = {}) {
   if (USE_SERVERLESS) {
-    return `${controller}?action=${method}`;
+    if (!method) {
+      // No action, just return /controller
+      return `${controller}`;
+    }
+
+    const query = new URLSearchParams({ action: method, ...params }).toString();
+    return `${controller}?${query}`;
   } else {
-    return `/${controller}/${method}`;
+    // Express style fallback
+    return method ? `/${controller}/${method}` : `/${controller}`;
   }
 }

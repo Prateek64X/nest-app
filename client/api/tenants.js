@@ -8,8 +8,8 @@ import {
   updateTenant,
   updateTenantProfile,
   deleteTenant,
-} from '@/serverless/controllers/tenantsController.js';
-import { verifyToken } from '@/serverless/middleware/auth';
+} from '../src/serverless/controllers/tenantsController.js';
+import { verifyToken } from '../src/serverless/middleware/auth.js';
 
 // Multer memory storage for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
 
       // GET routes
       case 'GET':
-        if (query.action === 'all') {
+        if (!query.action || query.action === 'all') {
           await verifyToken(req, res, async () => {
             await getTenants(req, res);
           });
