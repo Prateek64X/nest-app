@@ -239,18 +239,27 @@ export const getUpcomingRoomRents = async (req, res) => {
 };
 
 // Pass Tenant Id to get latest room rent
-export const getRoomRentByTenant = async (req, res) => {
-  const { id: tenant_id } = req.tenant || req.tenant_id;
+export const getRoomRentsByTenant = async (req, res) => {
+  const tenant_id = req.tenant?.id || req.tenant_id;
 
   if (!tenant_id) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
   try {
-    // Get latest room rent entry for this tenant
-    const latestRent = await prisma.room_rents.findFirst({
-      where: { tenant_id },
-      orderBy: { created_at: "desc" },
+    const billingStart = getBillingMonthStart(new Date());  
+    const prevBillingStart = getBillingMonthStart(subMonths(new Date(), 1)); // previous month start
+
+    // Fetch this month's rents + previous month's unpaid rents
+    const roomRents = await prisma.room_rents.findMany({
+      where: {
+        tenant_id,
+        OR: [
+          { billing_month: { gte: prevBillingStart }, payment_status: { not: "paid" } }, // prev month unpaid
+          { billing_month: { gte: billingStart } } // this month, regardless of payment
+        ]
+      },
+      orderBy: { billing_month: "desc" }, // newest month first
       select: {
         id: true,
         room_id: true,
@@ -264,62 +273,55 @@ export const getRoomRentByTenant = async (req, res) => {
         payment_status: true,
         created_at: true,
         billing_month: true,
-        tenants: {
-          select: {
-            full_name: true,
-            photo_url: true,
-          }
-        },
-        rooms: {
-          select: {
-            name: true,
-            floor: true,
-          }
-        }
-      }
+        tenants: { select: { full_name: true, photo_url: true } },
+        rooms: { select: { name: true, floor: true } },
+      },
     });
 
-    if (!latestRent) {
+    if (!roomRents?.length) {
       return res.status(404).json({ error: "No rent entry found for tenant" });
     }
 
-    // Get previous month's electricity usage (optional)
-    const prevRent = await prisma.room_rents.findFirst({
-      where: {
-        tenant_id,
-        billing_month: { lt: latestRent.billing_month },
-      },
-      select: { electricity_units: true },
-      orderBy: { billing_month: 'desc' },
-    });
+    // Map each rent and optionally get previous month's electricity usage
+    const data = await Promise.all(
+      roomRents.map(async (rent) => {
+        const prevRent = await prisma.room_rents.findFirst({
+          where: {
+            tenant_id,
+            billing_month: { lt: rent.billing_month },
+          },
+          select: { electricity_units: true },
+          orderBy: { billing_month: "desc" },
+        });
 
-    const data = {
-      id: latestRent.id,
-      tenant: {
-        id: latestRent.tenant_id,
-        fullName: latestRent.tenants?.full_name || '',
-        photoUrl: latestRent.tenants?.photo_url || '',
-      },
-      room: {
-        id: latestRent.room_id,
-        name: latestRent.rooms?.name || '',
-        floor: latestRent.rooms?.floor || '',
-      },
-      month: latestRent.created_at.toISOString().slice(0, 7),
-      roomCost: latestRent.room_cost,
-      electricityCost: latestRent.electricity_cost,
-      electricityUnits: latestRent.electricity_units,
-      prevElectricityUnits: prevRent?.electricity_units ?? 0,
-      maintenanceCost: latestRent.maintenance_cost,
-      totalCost: latestRent.total_cost,
-      paidAmount: latestRent.paid_amount,
-      paymentStatus: latestRent.payment_status,
-    };
+        return {
+          id: rent.id,
+          tenant: {
+            id: rent.tenant_id,
+            fullName: rent.tenants?.full_name || "",
+            photoUrl: rent.tenants?.photo_url || "",
+          },
+          room: {
+            id: rent.room_id,
+            name: rent.rooms?.name || "",
+            floor: rent.rooms?.floor || "",
+          },
+          month: rent.created_at.toISOString().slice(0, 7),
+          roomCost: rent.room_cost,
+          electricityCost: rent.electricity_cost,
+          electricityUnits: rent.electricity_units,
+          prevElectricityUnits: prevRent?.electricity_units ?? 0,
+          maintenanceCost: rent.maintenance_cost,
+          totalCost: rent.total_cost,
+          paidAmount: rent.paid_amount,
+          paymentStatus: rent.payment_status,
+        };
+      })
+    );
 
     return res.status(200).json({ success: true, data });
-
   } catch (err) {
-    console.error("getRoomRentByTenant error:", err);
+    console.error("getRoomRentsByTenant error:", err);
     res.status(500).json({ error: err.message || err, message: "Internal server error" });
   }
 };

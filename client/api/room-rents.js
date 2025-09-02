@@ -3,7 +3,7 @@ import {
   createRoomRentEntries,
   getUpcomingRoomRents,
   getRoomRents,
-  getRoomRentByTenant,
+  getRoomRentsByTenant,
   updateRoomRent
 } from '../src/serverless/controllers/roomRentController.js';
 import { verifyToken } from '../src/serverless/middleware/auth.js';
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
           });
         } else if (query.action === 'tenant') {
           await verifyToken(req, res, async () => {
-            await getRoomRentByTenant(req, res);
+            await getRoomRentsByTenant(req, res);
           });
         } else {
           res.status(400).json({ error: 'Invalid GET action' });

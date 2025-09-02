@@ -2,7 +2,7 @@ import express from 'express';
 import { verifyToken } from '../middleware/auth.js';
 import { 
     createRoomRentEntries, 
-    getRoomRentByTenant, 
+    getRoomRentsByTenant, 
     getRoomRents, 
     getUpcomingRoomRents, 
     updateRoomRent 
@@ -13,7 +13,7 @@ const router = express.Router();
 // Here add routes
 router.post('/', verifyToken, createRoomRentEntries);
 router.get('/', verifyToken, getRoomRents);
-router.get("/tenant", verifyToken, getRoomRentByTenant);
+router.get("/tenant", verifyToken, getRoomRentsByTenant);
 router.get('/upcoming', verifyToken, getUpcomingRoomRents);
 router.patch('/:id', verifyToken, updateRoomRent);
 

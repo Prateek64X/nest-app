@@ -61,7 +61,7 @@ export async function getRoomRents() {
 }
 
 // Fetch rents for a tenant (when logged in as user)
-export async function getRoomRentByTenant() {
+export async function getRoomRentsByTenant() {
   try {
     const res = await api.get(getRoute("room-rents", "tenant"));
 

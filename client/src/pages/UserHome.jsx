@@ -7,16 +7,17 @@ import { toast } from "sonner";
 import { FaBolt, FaHome, FaTrash, FaWallet } from "react-icons/fa";
 import { MdClear, MdWaterDrop } from "react-icons/md";
 import { MdEdit } from "react-icons/md";
-import { getRoomRentByTenant } from "@/services/roomRentsService";
-import { LabelRow } from "@/components/RoomRent/RentCard";
+import { getRoomRentsByTenant } from "@/services/roomRentsService";
 import { useAuth } from "@/auth/AuthProvider";
 import UpdateRequestModal from "@/components/User/UpdateRequestModal";
 import { getUpdateRequestTenant } from "@/services/updateRequestService";
 import UpdateRequestCard from "@/components/User/UpdateRequestCard";
+import UserRentCard from "@/components/User/UserRentCard";
+import LoaderLu from "@/components/shared/LoaderLu";
 
 export default function UserHome() {
   const { user } = useAuth();
-  const [roomRent, setRoomRent] = useState(null);
+  const [roomRents, setRoomRents] = useState(null);
   const [updateRequests, setUpdateRequests] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -24,14 +25,13 @@ export default function UserHome() {
 
   async function fetchRoomRent() {
     try {
-      const data = await getRoomRentByTenant();
-      setRoomRent(data);
+      const data = await getRoomRentsByTenant();
+      setRoomRents(data);
     } catch (err) {
       const message =
         err?.message || err?.error || "Something went wrong while fetching rent";
 
-      console.error("Fetch Error:", message);
-      setError(message);
+      setError("No rent entry for this month");
       toast.error(message);
     } finally {
       setLoading(false);
@@ -55,66 +55,87 @@ export default function UserHome() {
     fetchUpdateRequests();
   }, []);
 
-  if (loading) return <p className="pt-12 text-center text-muted-foreground">Loading...</p>;
+  if (loading) return <LoaderLu />;
   if (error) return <p className="pt-12 text-center text-red-500">{error}</p>;
-  if (!roomRent) return <p className="pt-12 text-center text-muted-foreground">No rent data found.</p>;
+  if (!roomRents || roomRents.length === 0) {
+    return (
+      <div className="min-h-screen pt-12 space-y-4">
+        <DateView />
+        <p className="pt-12 text-center text-muted-foreground">No rent entries found</p>
+        
+        {/* Update Requests */}
+        <Button
+          className="w-full mt-2"
+          variant="secondary"
+          onClick={() => setShowUpdateRequest(true)}
+        >
+          <MdEdit className="w-4 h-4" />
+          Request Updation
+        </Button>
 
-  const isPaid = roomRent.paymentStatus === "paid";
+        {updateRequests?.length > 0 && (
+          <div className="mt-6 space-y-2">
+            <h2 className='text-lg font-semibold text-primary tracking-tight ml-2'>Update Requests</h2>
+            {updateRequests.map((req) => (
+              <UpdateRequestCard request={req} onDismiss={() => fetchUpdateRequests()} />
+            ))}
+          </div>
+        )}
+
+        {showUpdateRequest && (
+          <UpdateRequestModal
+            tenant_id={user?.id || null}
+            onClose={() => {
+              setShowUpdateRequest(false);
+              fetchUpdateRequests();
+            }}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Group rents by month
+  const groupedByMonth = roomRents.reduce((acc, rent) => {
+    const monthKey = rent.month.slice(0, 7); // "2025-08"
+    if (!acc[monthKey]) acc[monthKey] = [];
+    acc[monthKey].push(rent);
+    return acc;
+  }, {});
 
   return (
     <div className="min-h-screen pt-12">
       <DateView className="mb-4" />
       <h2 className='mt-18 mb-2 text-lg font-semibold text-primary tracking-tight ml-2'>This Month's Summary</h2>
-      <Card className="p-8">
-        <div className="max-w-full w-full">
-          <div className="grid grid-cols-[max-content_auto] items-center gap-y-6">
-            <LabelRow
-              icon={<FaHome className="mr-1 text-muted-foreground" />}
-              label="Room Rent"
-              value={roomRent.roomCost?.toString() || ""}
-              readOnlyValue={true}
-            />
-
-            <LabelRow
-              icon={<FaBolt className="mr-1 text-muted-foreground" />}
-              label="Electricity Cost"
-              value={roomRent.electricityCost?.toString() || ""}
-              readOnlyValue={true}
-            />
-
-            <LabelRow
-              icon={<MdWaterDrop className="mr-1 text-muted-foreground" />}
-              label="Maintainance Cost"
-              value={roomRent.maintenanceCost?.toString() || ""}
-              readOnlyValue={true}
-            />
-
-            <LabelRow
-              icon={<FaWallet className="mr-1 text-foreground" />}
-              label="Total Cost"
-              value={roomRent.totalCost}
-              labelClassName="text-sm text-foreground"
-              isTick={isPaid}
-              readOnlyValue={true}
-            />
-
-            {!isPaid && roomRent.paidAmount !== 0 && (
-              <LabelRow
-                icon={<FaWallet className="mr-1 text-muted-foreground" />}
-                label="Cost Paid"
-                value={roomRent.paidAmount}
-                isTick={isPaid}
-                readOnlyValue={true}
-              />
+      {Object.keys(groupedByMonth)
+        .sort((a, b) => new Date(b) - new Date(a)) // newest month first
+        .map((month) => (
+          <div key={month} className="mb-6">
+            {groupedByMonth.length > 1 && (
+              <h2 className="text-muted-foreground font-medium text-sm border-b pb-1 ml-2">
+                {new Date(groupedByMonth[month][0].month).toLocaleString("en-US", {
+                  month: "long",
+                  year: "numeric",
+                })}
+              </h2>
             )}
-          </div>
-        </div>
 
-        <Button className="w-full mt-2" variant="secondary" onClick={() => {setShowUpdateRequest(true)}}>
-          <MdEdit className="w-4 h-4" />
-          Request Updation
-        </Button>
-      </Card>
+            <div className="space-y-2">
+              {groupedByMonth[month].map((rent) => {
+                const isPaid = rent.payment_status === "paid";
+
+                return (
+                  <UserRentCard
+                    key={rent.id}
+                    roomRent={rent}
+                    isPaid={isPaid}
+                    setShowUpdateRequest={setShowUpdateRequest}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        ))}
 
       {/* Update Requests */}
       {updateRequests?.length > 0 && (
