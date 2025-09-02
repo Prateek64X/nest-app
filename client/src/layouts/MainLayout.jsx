@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Header from '@/components/Header';
 import AdminUpdateRequestsPopover from '@/components/User/AdminUpdateRequestsList';
 import { useAuth } from '@/auth/AuthProvider';
+import { Analytics } from '@vercel/analytics/react';
 
 export default function MainLayout() {
   const { user } = useAuth();
@@ -24,6 +25,7 @@ export default function MainLayout() {
         <div className="flex-1 w-full max-w-6xl mx-auto">
           <Outlet />
         </div>
+        <Analytics />
       </div>
 
       <Navbar navigationRoutes={navList} />

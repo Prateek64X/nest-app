@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import { FaBed, FaHome, FaUserCircle, FaUserFriends } from 'react-icons/fa';
 import Navbar from '../components/Navbar';
 import Header from '@/components/Header';
+import { Analytics } from '@vercel/analytics/react';
 
 export default function UserLayout() {
   const navList = [
@@ -17,6 +18,7 @@ export default function UserLayout() {
         <div className="flex-1 w-full max-w-6xl mx-auto">
           <Outlet />
         </div>
+        <Analytics />
       </div>
       <Navbar navigationRoutes={navList} />
     </>
