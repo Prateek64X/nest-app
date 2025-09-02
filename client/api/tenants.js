@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     switch (method) {
       // POST routes
       case 'POST':
-        if (query.action === 'create') {
+        if (!query.action || query.action === 'create') {
           await verifyToken(req, res, async () => {
             await new Promise((resolve, reject) => {
               upload.any()(req, res, async (err) => {

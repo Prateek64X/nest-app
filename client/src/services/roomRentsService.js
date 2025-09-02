@@ -4,7 +4,7 @@ import { getRoute } from "@/lib/utils";
 // Create monthly rent entries for all active tenants
 export async function createRoomRentEntries() {
   try {
-    const res = await api.post(getRoute("room-rents", ""));
+    const res = await api.post(getRoute("room-rents", "create"));
 
     const { success, message } = res.data;
 
@@ -37,7 +37,7 @@ export async function getUpcomingRoomRents() {
 // Fetch all room rent records (admin)
 export async function getRoomRents() {
   try {
-    const res = await api.get(getRoute("room-rents", ""));
+    const res = await api.get(getRoute("room-rents", "all"));
 
     if (!res.data?.success) {
       throw new Error(res.data?.message || "Fetching Room rents failed");

@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     switch (method) {
       // POST: create a room
       case 'POST':
-        if (query.action === 'create') {
+        if (!query.action || query.action === 'create') {
           await verifyToken(req, res, async () => {
             await createRoom(req, res);
           });

@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     switch (method) {
       // POST - create a new request (tenant)
       case 'POST':
-        if (query.action === 'create') {
+        if (!query.action || query.action === 'create') {
           await verifyToken(req, res, async () => {
             await createUpdateRequest(req, res);
           });
