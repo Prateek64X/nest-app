@@ -102,18 +102,19 @@ export default function UserHome() {
     acc[monthKey].push(rent);
     return acc;
   }, {});
+  console.log("groupedByMonth = ",groupedByMonth, "Date(groupedByMonth) = ",new Date(groupedByMonth[0]))
 
   return (
     <div className="min-h-screen pt-12">
       <DateView className="mb-4" />
       <h2 className='mt-18 mb-2 text-lg font-semibold text-primary tracking-tight ml-2'>This Month's Summary</h2>
       {Object.keys(groupedByMonth)
-        .sort((a, b) => new Date(b) - new Date(a)) // newest month first
+        .sort((a, b) => new Date(b + "-01").getTime() - new Date(a + "-01").getTime())
         .map((month) => (
-          <div key={month} className="mb-6">
-            {groupedByMonth.length > 1 && (
+          <div key={month} className="mb-6 space-y-2">
+            {Object.keys(groupedByMonth).length > 1 && (
               <h2 className="text-muted-foreground font-medium text-sm border-b pb-1 ml-2">
-                {new Date(groupedByMonth[month][0].month).toLocaleString("en-US", {
+                {new Date(groupedByMonth[month][0].month + "-01").toLocaleString("en-US", {
                   month: "long",
                   year: "numeric",
                 })}
