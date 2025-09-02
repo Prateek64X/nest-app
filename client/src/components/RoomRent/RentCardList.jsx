@@ -41,27 +41,74 @@ export default function RentCardList({
     );
   }
 
+  // Sort by month descending (newest first)
+  const sortedRents = [...roomRents].sort(
+    (a, b) => new Date(b.month) - new Date(a.month)
+  );
+
+  // Group by month
+  const groupedByMonth = sortedRents.reduce((acc, rent) => {
+    const monthKey = rent.month.slice(0, 7); // "2025-08"
+    acc[monthKey] = acc[monthKey] || [];
+    acc[monthKey].push(rent);
+    return acc;
+  }, {});
+
+  // Sort each month's rents by room.id (asc) then sort by room.floor (desc)
+  Object.keys(groupedByMonth).forEach((month) => {
+    groupedByMonth[month].sort((a, b) => {
+      const floorA = Number(a.room.floor);
+      const floorB = Number(b.room.floor);
+
+      if (floorA !== floorB) return floorB - floorA; // Descending floors
+      return a.room.id - b.room.id; // Ascending room id
+    });
+  });
+
   return (
     <div className={`${className} space-y-2`}>
       <h2 className="text-lg font-semibold text-primary tracking-tight ml-2">Room Rents</h2>
-      <div className="grid gap-2 lg:grid-cols-2">
-        {roomRents.map((rent, index) => {
-          const rowIndex = Math.floor(index / 2);
-          const isExpanded = window.innerWidth >= 1024 ? expandedRows[rowIndex] || false : undefined;
+      <div className="space-y-6 mt-1">
+        {Object.keys(groupedByMonth).map((month) => (
+          <div key={month} className="space-y-2">
+            <h2 className="text-muted-foreground font-medium text-sm border-b pb-1 ml-2">
+              {new Date(groupedByMonth[month][0].month).toLocaleString('en-US', {
+                month: 'long',
+                year: 'numeric',
+              })}
+            </h2>
 
-          return (
-            <RentCard
-              key={rent.id}
-              existingRoomRent={rent}
-              refreshRoomRents={refreshRoomRents}
-              forceExpanded={isExpanded}
-              onExpandChange={(val) => handleCardExpand(index, val)}
-            />
-          );
-        })}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+              {groupedByMonth[month].map((rent, index) => {
+                const rowIndex = Math.floor(index / 2);
+                const rowKey = `${month}-${rowIndex}`; // unique per month
+
+                const isExpanded =
+                  window.innerWidth >= 1024
+                    ? expandedRows[rowKey] || false
+                    : undefined;
+
+                return (
+                  <RentCard
+                    key={rent.id}
+                    existingRoomRent={rent}
+                    refreshRoomRents={refreshRoomRents}
+                    forceExpanded={isExpanded}
+                    onExpandChange={(val) => {
+                      if (window.innerWidth < 1024) return;
+                      setExpandedRows((prev) => ({
+                        ...prev,
+                        [rowKey]: val,
+                      }));
+                    }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
-
-      <Separator className="my-4" />
 
       {upcomingRents?.length > 0 && (
         <h2 className="text-lg font-semibold text-primary tracking-tight ml-2">

@@ -97,7 +97,7 @@ export async function updateRoomRent({
   paidAmount,
 }) {
   try {
-    const res = await api.patch(getRoute("room-rents", `${id}`), {
+    const res = await api.patch(getRoute("room-rents", "update", { id }), {
       roomId,
       roomCost,
       electricityCost,

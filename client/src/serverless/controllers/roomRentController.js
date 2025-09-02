@@ -1,4 +1,4 @@
-import { addDays, startOfMonth } from 'date-fns';
+import { addDays, format, startOfMonth, subMonths } from 'date-fns';
 import prisma from '../db/prisma.js';
 import { getBillingMonthStart, getISTMonthEndDate, getISTMonthStartDate, getMonthEndDateString, getMonthStartDateString } from '../utils/DateHelper.js';
 
@@ -88,56 +88,67 @@ export const getRoomRents = async (req, res) => {
   const { id: admin_id } = req.admin;
 
   try {
+    const billingStart = getBillingMonthStart(new Date());  
+    const prevBillingStart = getBillingMonthStart(subMonths(new Date(), 1)); // previous month start
+
     // 1. Fetch all occupied rooms with tenant assigned
     const occupiedRooms = await prisma.rooms.findMany({
       where: { admin_id, occupied: true, tenant_id: { not: null } },
-      select: { id: true }
+      select: { id: true },
     });
-
     const roomIds = occupiedRooms.map(r => r.id);
+
     if (roomIds.length === 0) {
       return res.status(200).json({ success: true, data: [] });
     }
-    // 2. Fetch all room rents for this month along with related room & tenant info
-    const rents = await prisma.room_rents.findMany({
+
+    // 2. Fetch all rents for current month
+    const currentMonthRents = await prisma.room_rents.findMany({
       where: {
         room_id: { in: roomIds },
-        billing_month: billingMonth,
+        billing_month: billingStart, // Date object
       },
-      select: {
-        id: true,
-        room_id: true,
-        tenant_id: true,
-        room_cost: true,
-        electricity_cost: true,
-        electricity_units: true,
-        maintenance_cost: true,
-        total_cost: true,
-        paid_amount: true,
-        payment_status: true,
-        created_at: true,
-        tenants: {
-          select: {
-            full_name: true,
-            photo_url: true,
-          }
-        },
-        rooms: {
-          select: {
-            name: true,
-            floor: true,
-          }
-        }
-      }
+      include: {
+        tenants: { select: { full_name: true, photo_url: true } },
+        rooms: { select: { name: true, floor: true } },
+      },
     });
 
-    
+    // 3. Check if any previous month rents are unpaid
+    let prevMonthRents = [];
+    const prevMonthUnpaid = await prisma.room_rents.findFirst({
+      where: {
+        room_id: { in: roomIds },
+        billing_month: prevBillingStart,
+        payment_status: { not: 'paid' },
+      },
+    });
+
+    // 4. Fetch all previous month rents if any unpaid
+    if (prevMonthUnpaid) {
+      prevMonthRents = await prisma.room_rents.findMany({
+        where: {
+          room_id: { in: roomIds },
+          billing_month: prevBillingStart,
+        },
+        include: {
+          tenants: { select: { full_name: true, photo_url: true } },
+          rooms: { select: { name: true, floor: true } },
+        },
+      });
+    }
+
+    // 5. Combine both months
+    const allRents = [...currentMonthRents, ...prevMonthRents];
+
+    // 6. Map to response format
     const data = await Promise.all(
-      rents.map(async (rent) => {
+      allRents.map(async (rent) => {
+        // optional: fetch previous rent's electricity units
         const prevRent = await prisma.room_rents.findFirst({
           where: {
             room_id: rent.room_id,
-            billing_month: { lt: billingMonth },
+            billing_month: { lt: rent.billing_month },
           },
           select: { electricity_units: true },
           orderBy: { billing_month: 'desc' },
@@ -155,7 +166,7 @@ export const getRoomRents = async (req, res) => {
             name: rent.rooms?.name || '',
             floor: rent.rooms?.floor || '',
           },
-          month: rent.created_at.toISOString().slice(0, 7),
+          month: rent.billing_month,
           roomCost: rent.room_cost,
           electricityCost: rent.electricity_cost,
           electricityUnits: rent.electricity_units,
